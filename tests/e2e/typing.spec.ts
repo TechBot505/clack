@@ -90,7 +90,11 @@ test("home hero accepts typing immediately", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".tw-word");
   await page.keyboard.press("Escape"); // make sure nothing has focus quirks
-  await typeUntilResults(page, 40, 10).catch(() => {});
+  // the hero shows an inline result instead of the full results screen
+  for (let i = 0; i < 40; i++) {
+    if (await page.getByText("the real test").isVisible()) break;
+    if (!(await typeActiveWord(page, { delay: 10 }))) break;
+  }
   await expect(page.getByText("the real test")).toBeVisible({ timeout: 10_000 });
 });
 
