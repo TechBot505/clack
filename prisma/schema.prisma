@@ -1,0 +1,259 @@
+// clack. database schema
+//
+// Designed up-front for every planned phase (tests, records, daily challenge,
+// races, social, goals) so later features never need a rewrite. Raw keystroke
+// data lives in TypingEvent as one compact row per test (not one row per key),
+// which is enough to replay a run, rebuild ghosts and recompute analytics.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  clerkId     String   @unique
+  username    String?  @unique
+  displayName String?
+  avatarUrl   String?
+  bio         String?
+  /// "public" | "friends" | "private"
+  visibility  String   @default("public")
+  xp          Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  settings        UserSettings?
+  tests           TypingTest[]
+  personalBests   PersonalBest[]
+  achievements    UserAchievement[]
+  goals           UserGoal[]
+  dailyAttempts   DailyChallengeAttempt[]
+  following       Friendship[]            @relation("follower")
+  followers       Friendship[]            @relation("following")
+  hostedRaces     Race[]
+  raceEntries     RaceParticipant[]
+  customChallenges CustomChallenge[]
+}
+
+model UserSettings {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Full client settings object (validated with zod on write).
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+model TypingTest {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Id generated on the client; makes uploads idempotent (local → account migration).
+  clientId    String?
+  createdAt   DateTime @default(now())
+
+  /// "time" | "words" | "quote" | "code" | "custom" | "zen"
+  mode        String
+  /// seconds for time mode, word count for words mode, 0 otherwise
+  mode2       Int      @default(0)
+  /// "common" | "difficult" | "numbers" | ... (content source)
+  content     String   @default("common")
+  language    String   @default("english")
+  punctuation Boolean  @default(false)
+  numbers     Boolean  @default(false)
+  /// Seed used to generate the text (server regenerates words from it).
+  seed        String?
+  /// quote id / snippet id when applicable
+  sourceId    String?
+  /// Leaderboard/PB category key, e.g. "time:60", "words:25", "quote", "code".
+  category    String
+
+  wpm           Float
+  rawWpm        Float
+  accuracy      Float
+  consistency   Float
+  peakWpm       Float
+  duration      Float
+  correctChars  Int
+  incorrectChars Int
+  extraChars    Int
+  missedChars   Int
+  keystrokes    Int
+  wordsTyped    Int
+  backspaces    Int     @default(0)
+
+  /// Per-second samples: { wpm:number[], raw:number[], err:number[] }
+  samples     Json
+  /// Per-key aggregates: { [key]: [hits, misses, totalMs] }
+  keyStats    Json
+  isPb        Boolean  @default(false)
+  /// Anti-cheat
+  flagged     Boolean  @default(false)
+  flagReasons String[] @default([])
+
+  events      TypingEvent?
+  dailyAttempt DailyChallengeAttempt?
+  raceEntry   RaceParticipant?
+
+  @@unique([userId, clientId])
+  @@index([userId, createdAt])
+  @@index([userId, category])
+  @@index([category, wpm])
+}
+
+/// Compact keystroke timeline for one test: the key sequence as a string and
+/// the millisecond deltas between keys. Replaying these through the engine
+/// reproduces the whole run deterministically.
+model TypingEvent {
+  testId   String     @id
+  test     TypingTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  version  Int        @default(1)
+  keys     String
+  deltas   Int[]
+  /// Target text (only stored when it cannot be regenerated from a seed).
+  text     String?
+}
+
+model PersonalBest {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   String
+  wpm        Float
+  accuracy   Float
+  rawWpm     Float
+  testId     String
+  achievedAt DateTime @default(now())
+
+  @@unique([userId, category])
+}
+
+model Achievement {
+  id          String  @id
+  name        String
+  description String
+  secret      Boolean @default(false)
+  xp          Int     @default(0)
+
+  users UserAchievement[]
+}
+
+model UserAchievement {
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  testId        String?
+  unlockedAt    DateTime    @default(now())
+
+  @@id([userId, achievementId])
+}
+
+model DailyChallenge {
+  id        String   @id @default(cuid())
+  /// YYYY-MM-DD (UTC)
+  date      String   @unique
+  seed      String
+  config    Json
+  createdAt DateTime @default(now())
+
+  attempts DailyChallengeAttempt[]
+}
+
+model DailyChallengeAttempt {
+  id          String         @id @default(cuid())
+  challengeId String
+  challenge   DailyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testId      String         @unique
+  test        TypingTest     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  official    Boolean        @default(false)
+  wpm         Float
+  accuracy    Float
+  createdAt   DateTime       @default(now())
+
+  @@index([challengeId, official, wpm])
+  @@index([userId, createdAt])
+}
+
+model Friendship {
+  followerId  String
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+model Race {
+  id         String    @id @default(cuid())
+  /// Short, unguessable join code.
+  code       String    @unique
+  hostId     String?
+  host       User?     @relation(fields: [hostId], references: [id], onDelete: SetNull)
+  /// "lobby" | "countdown" | "running" | "finished"
+  status     String    @default("lobby")
+  isPublic   Boolean   @default(false)
+  seed       String
+  config     Json
+  createdAt  DateTime  @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  participants RaceParticipant[]
+
+  @@index([isPublic, status])
+}
+
+model RaceParticipant {
+  id         String      @id @default(cuid())
+  raceId     String
+  race       Race        @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  guestName  String?
+  avatar     String?
+  position   Int?
+  wpm        Float?
+  accuracy   Float?
+  finishedAt DateTime?
+  testId     String?     @unique
+  test       TypingTest? @relation(fields: [testId], references: [id], onDelete: SetNull)
+
+  @@index([raceId])
+}
+
+model CustomChallenge {
+  id        String   @id @default(cuid())
+  /// Short public slug used in share links.
+  slug      String   @unique
+  creatorId String?
+  creator   User?    @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  title     String?
+  text      String
+  config    Json
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model UserGoal {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// "wpm" | "accuracy" | "minutes_per_day" | "tests_per_day" | "category_wpm"
+  kind       String
+  target     Float
+  category   String?
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  achievedAt DateTime?
+
+  @@index([userId, active])
+}
