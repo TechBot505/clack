@@ -38,26 +38,30 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const html = (
+  const app = (
+    <Providers authEnabled={clerkEnabled}>
+      <Shell>{children}</Shell>
+    </Providers>
+  );
+  return (
     <html lang="en" data-theme="graphite" data-dark="true" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
       <body className="grain antialiased">
-        <Providers authEnabled={clerkEnabled}>
-          <Shell>{children}</Shell>
-        </Providers>
+        {/* Clerk is optional: without keys the app runs fully anonymous. */}
+        {clerkEnabled ? (
+          <ClerkProvider
+            appearance={{
+              variables: { colorPrimary: "#ff6b3d", borderRadius: "4px", fontFamily: "Geist Variable, system-ui, sans-serif" },
+            }}
+          >
+            {app}
+          </ClerkProvider>
+        ) : (
+          app
+        )}
       </body>
     </html>
-  );
-  if (!clerkEnabled) return html;
-  return (
-    <ClerkProvider
-      appearance={{
-        variables: { colorPrimary: "#ff6b3d", borderRadius: "4px", fontFamily: "Geist Variable, system-ui, sans-serif" },
-      }}
-    >
-      {html}
-    </ClerkProvider>
   );
 }
