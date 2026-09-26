@@ -21,7 +21,9 @@ export type CodeLanguage =
   | "rust"
   | "sql"
   | "html"
-  | "css";
+  | "css"
+  | "json"
+  | "shell";
 
 export const CODE_LANGUAGES: { id: CodeLanguage; name: string }[] = [
   { id: "javascript", name: "JavaScript" },
@@ -34,6 +36,8 @@ export const CODE_LANGUAGES: { id: CodeLanguage; name: string }[] = [
   { id: "sql", name: "SQL" },
   { id: "html", name: "HTML" },
   { id: "css", name: "CSS" },
+  { id: "json", name: "JSON" },
+  { id: "shell", name: "Shell" },
 ];
 
 export const SNIPPETS: CodeSnippet[] = [
@@ -298,6 +302,73 @@ WHERE user_id = $1;`,
   background: currentColor;
   animation: blink 1s steps(1) infinite;
 }`,
+  },
+  {
+    id: "json-package",
+    language: "json",
+    title: "package.json",
+    code: `{
+  "name": "clack",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "test": "vitest run"
+  },
+  "engines": { "node": ">=20" }
+}`,
+  },
+  {
+    id: "json-api",
+    language: "json",
+    title: "api response",
+    code: `{
+  "user": { "id": 42, "handle": "fastfingers" },
+  "results": [
+    { "wpm": 118.4, "accuracy": 99.1, "pb": true },
+    { "wpm": 104.9, "accuracy": 97.6, "pb": false }
+  ],
+  "next": null
+}`,
+  },
+  {
+    id: "json-config",
+    language: "json",
+    title: "editor settings",
+    code: `{
+  "editor.fontSize": 15,
+  "editor.tabSize": 2,
+  "editor.cursorBlinking": "smooth",
+  "files.exclude": { "**/.git": true, "**/node_modules": true },
+  "workbench.colorTheme": "Graphite"
+}`,
+  },
+  {
+    id: "shell-git",
+    language: "shell",
+    title: "git flow",
+    code: `git checkout -b feat/ghost-caret
+git add -A && git commit -m "feat: race your personal best"
+git fetch origin && git rebase origin/main
+git push -u origin feat/ghost-caret`,
+  },
+  {
+    id: "shell-files",
+    language: "shell",
+    title: "files & pipes",
+    code: `ls -la ~/projects | grep clack
+find . -name "*.ts" -not -path "./node_modules/*" | wc -l
+tail -f /var/log/app.log | grep --color=auto ERROR
+du -sh ./* | sort -rh | head -n 5`,
+  },
+  {
+    id: "shell-dev",
+    language: "shell",
+    title: "dev setup",
+    code: `npm install && npm run build
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:16
+export DATABASE_URL="postgresql://postgres:secret@localhost:5432/app"
+npx prisma migrate deploy && npm start`,
   },
 ];
 

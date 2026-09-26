@@ -135,13 +135,25 @@ export function TestConfigBar({ onCustomEdit }: { onCustomEdit: () => void }) {
         />
       )}
       {test.mode === "quote" && (
-        <Seg
-          id="quote"
-          label="Quote length"
-          value={test.quoteLength}
-          options={(["any", "short", "medium", "long"] as const).map((q) => ({ id: q, label: q }))}
-          onChange={(quoteLength) => set({ quoteLength })}
-        />
+        <>
+          <Seg
+            id="quote"
+            label="Quote length"
+            value={test.quoteLength}
+            options={(["any", "short", "medium", "long"] as const).map((q) => ({ id: q, label: q }))}
+            onChange={(quoteLength) => set({ quoteLength })}
+          />
+          <label className="flex items-center gap-2 px-2 font-mono text-[0.76rem] text-sub">
+            <span className="sr-only">Quote group</span>
+            <select value={test.quoteGroup} onChange={(e) => set({ quoteGroup: e.target.value as TestConfig["quoteGroup"] })} className="cursor-pointer bg-transparent py-1 text-fg outline-none">
+              {(["any", "books", "philosophy", "technology", "speeches", "favorites"] as const).map((g) => (
+                <option key={g} value={g}>
+                  {g === "any" ? "any source" : g}
+                </option>
+              ))}
+            </select>
+          </label>
+        </>
       )}
       {test.mode === "code" && (
         <label className="flex items-center gap-2 px-2 font-mono text-[0.76rem] text-sub">

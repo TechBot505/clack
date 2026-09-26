@@ -34,7 +34,7 @@ export function engineOptionsFor(c: TestConfig): EngineOptions {
 }
 
 /** Chooses the concrete text for a test. `seed` makes the choice reproducible. */
-export function textSpecFor(c: TestConfig, seed: string, fixed?: { sourceId?: string; text?: string }): TextSpec {
+export function textSpecFor(c: TestConfig, seed: string, fixed?: { sourceId?: string; text?: string }, ctx?: { favorites?: string[] }): TextSpec {
   switch (c.mode) {
     case "time":
       return { kind: "words", language: c.language, content: c.content, punctuation: c.punctuation, numbers: c.numbers, seed };
@@ -42,7 +42,8 @@ export function textSpecFor(c: TestConfig, seed: string, fixed?: { sourceId?: st
       return { kind: "words", language: c.language, content: c.content, punctuation: c.punctuation, numbers: c.numbers, seed, count: c.wordCount };
     case "quote": {
       if (fixed?.sourceId && getQuote(fixed.sourceId)) return { kind: "quote", id: fixed.sourceId };
-      const pool = filterQuotes(c.quoteLength, c.quoteGroup);
+      const favs = (ctx?.favorites ?? []).map((id) => getQuote(id)).filter((q): q is NonNullable<typeof q> => !!q);
+      const pool = c.quoteGroup === "favorites" ? favs.filter((q) => c.quoteLength === "any" || filterQuotes(c.quoteLength, "any").includes(q)) : filterQuotes(c.quoteLength, c.quoteGroup);
       const list = pool.length ? pool : QUOTES;
       return { kind: "quote", id: createRng(seed).pick(list).id };
     }

@@ -67,9 +67,10 @@ export class TestSession {
     private readonly renderer: TypingRenderer,
     private readonly cb: SessionCallbacks,
     fixed?: { seed?: string; sourceId?: string; text?: string },
+    ctx?: { favorites?: string[] },
   ) {
     this.seed = fixed?.seed ?? newSeed();
-    this.spec = textSpecFor(config, this.seed, fixed);
+    this.spec = textSpecFor(config, this.seed, fixed, ctx);
     this.built = buildText(this.spec);
     this.engine = new TypingEngine(this.built.words, { ...engineOptionsFor(config), zen: this.built.zen, code: this.built.code }, this.built.supply);
     renderer.mount(this.engine.words, this.engine.typed);

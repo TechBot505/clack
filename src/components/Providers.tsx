@@ -10,6 +10,7 @@ import { CommandPalette } from "./CommandPalette";
 import { Toaster } from "./Toaster";
 import { EasterEggs } from "./EasterEggs";
 import { Background } from "./Background";
+import { ImportBanner } from "./ImportBanner";
 
 /** Keeps <html> attributes in sync with settings (theme, font, motion…). */
 function SettingsApplier() {
@@ -91,6 +92,7 @@ export function Providers({ children, authEnabled }: { children: ReactNode; auth
         <CommandPalette />
         <Toaster />
         <EasterEggs />
+        <ImportBanner />
       </MotionConfig>
     </AuthBridge>
   );

@@ -140,6 +140,24 @@ export function generateInsights(result: RunResult, record: TestRecord, history:
     }
   }
 
+  // code: syntax characters vs letters
+  if (record.mode === "code") {
+    const ce = codeErrors(result.keyStats);
+    if (ce.total > 0) {
+      const share = (ce.symbols / ce.total) * 100;
+      out.push({
+        id: "code-errors",
+        text:
+          ce.symbols === 0
+            ? `Every syntax character landed. All ${ce.total} mistakes were in identifiers.`
+            : `${Math.round(share)}% of your mistakes were syntax characters${ce.top ? `, mostly '${ce.top}'` : ""}.`,
+        highlight: ce.symbols === 0 ? "syntax" : `${Math.round(share)}%`,
+        tone: share > 50 ? "warn" : "neutral",
+        weight: 8,
+      });
+    }
+  }
+
   // most-missed key
   const misses = Object.entries(result.keyStats).filter(([, s]) => s[1] > 0).sort((a, b) => b[1][1] - a[1][1]);
   if (misses.length && misses[0][1][1] >= 2) {
@@ -159,4 +177,24 @@ export function generateInsights(result: RunResult, record: TestRecord, history:
   }
 
   return out.sort((a, b) => b.weight - a.weight).slice(0, 5);
+}
+
+/** Mistakes split into syntax characters (brackets, operators, quotes…) and letters/digits. */
+export function codeErrors(keyStats: Record<string, [number, number, number]>): { symbols: number; letters: number; total: number; top: string | null } {
+  let symbols = 0;
+  let letters = 0;
+  let top: string | null = null;
+  let topN = 0;
+  for (const [k, s] of Object.entries(keyStats)) {
+    if (!s[1]) continue;
+    if (/^[a-z0-9]$/i.test(k) || k === " ") letters += s[1];
+    else {
+      symbols += s[1];
+      if (s[1] > topN) {
+        topN = s[1];
+        top = k;
+      }
+    }
+  }
+  return { symbols, letters, total: symbols + letters, top };
 }

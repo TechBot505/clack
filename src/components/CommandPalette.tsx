@@ -105,6 +105,10 @@ function PaletteBody() {
       { id: "diff", label: s().test.content === "difficult" ? "Common words" : "Difficult words", group: "Test", icon: Flame, run: startTest({ content: s().test.content === "difficult" ? "common" : "difficult" }) },
       { id: "strict", label: s().test.strict ? "Accuracy mode: off" : "Accuracy mode: on", group: "Test", icon: Target, keywords: ["strict", "stop on error"], run: startTest({ strict: !s().test.strict }) },
       { id: "restart", label: "Restart test", group: "Test", icon: RotateCcw, hint: "tab", run: () => { useUI.getState().requestRestart(); router.push("/type"); } },
+      { id: "burst", label: "Speed burst", group: "Test", icon: Zap, keywords: ["drag", "race", "sprint", "experimental"], run: go("/burst") },
+      { id: "pace", label: "Consistency challenge", group: "Test", icon: Target, keywords: ["pace", "target", "steady"], run: go("/pace") },
+      { id: "focus", label: "Focus mode", group: "Test", icon: Waves, keywords: ["ambient", "fullscreen", "rain", "space"], run: go("/focus") },
+      { id: "internet", label: "Type the internet", group: "Test", icon: Sparkles, keywords: ["experimental", "twisters", "json", "urls", "speeches"], run: go("/internet") },
       { id: "custom", label: "Custom test builder", group: "Test", icon: Sparkles, keywords: ["paste", "text", "share"], run: go("/practice#custom") },
       { id: "home", label: "Home", group: "Go to", icon: Home, run: go("/") },
       { id: "type", label: "Type", group: "Go to", icon: Keyboard, run: go("/type") },
@@ -115,6 +119,7 @@ function PaletteBody() {
       { id: "profile", label: "Open profile", group: "Go to", icon: User, run: go("/profile") },
       { id: "race", label: "Race a friend", group: "Go to", icon: Swords, keywords: ["multiplayer"], run: go("/race") },
       { id: "daily", label: "Daily challenge", group: "Go to", icon: CalendarDays, run: go("/daily") },
+      { id: "leaderboard", label: "Leaderboards", group: "Go to", icon: Trophy, keywords: ["rank", "global"], run: go("/leaderboard") },
       { id: "settings", label: "Settings", group: "Go to", icon: Settings, hint: "", run: go("/settings") },
       {
         id: "toggle-theme",

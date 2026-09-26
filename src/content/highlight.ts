@@ -18,6 +18,8 @@ const KEYWORDS: Record<string, string[]> = {
   sql: "SELECT FROM WHERE JOIN ON GROUP BY ORDER DESC ASC LIMIT AS AND OR NOT NULL INSERT INTO VALUES UPDATE SET DELETE MAX MIN AVG COUNT OVER ROWS PRECEDING".split(" "),
   css: "display grid flex none auto repeat minmax clamp var calc".split(" "),
   html: [],
+  json: "true false null".split(" "),
+  shell: "git npm npx ls cd find grep tail du sort head wc docker export sudo cat echo rm mkdir".split(" "),
 };
 
 export function highlight(code: string, language: string): string {
@@ -46,7 +48,7 @@ export function highlight(code: string, language: string): string {
   }
 
   const keywords = new Set(KEYWORDS[language] ?? KEYWORDS.javascript);
-  const commentLine = language === "python" ? "#" : language === "sql" ? "--" : "//";
+  const commentLine = language === "python" || language === "shell" ? "#" : language === "sql" ? "--" : language === "json" ? "\u0000" : "//";
   let i = 0;
   while (i < code.length) {
     const ch = code[i];

@@ -18,6 +18,7 @@ import { Replay } from "@/components/replay/Replay";
 import { RhythmMap } from "@/components/replay/RhythmMap";
 import { useSettings } from "@/stores/settings";
 import { useUI } from "@/stores/ui";
+import { FavoriteButton } from "@/components/results/FavoriteButton";
 
 const WpmChart = dynamic(() => import("@/components/results/WpmChart").then((m) => m.WpmChart), { ssr: false, loading: () => <div className="h-[270px]" /> });
 const ShareDialog = dynamic(() => import("@/components/results/ShareDialog").then((m) => m.ShareDialog), { ssr: false });
@@ -116,6 +117,7 @@ export function TestDetailClient({ id }: { id: string }) {
         <span>{fmtTime(record.createdAt)}</span>
         <span>{describeTest(record)}</span>
         {src && <span className="normal-case tracking-normal text-faint">{src}</span>}
+        {record.mode === "quote" && record.sourceId && <FavoriteButton id={record.sourceId} />}
       </div>
       <div className="mt-4 flex flex-wrap items-end gap-x-10 gap-y-4">
         <div className="flex items-end gap-3">

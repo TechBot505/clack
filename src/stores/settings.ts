@@ -52,6 +52,7 @@ export interface Settings {
   goals: Goal[];
   neonKeyboard: boolean;
   dnaHalo: boolean;
+  favoriteQuotes: string[];
   /** last used test configuration */
   test: TestConfig;
 }
@@ -89,6 +90,7 @@ export const DEFAULT_SETTINGS: Settings = {
   goals: [],
   neonKeyboard: false,
   dnaHalo: false,
+  favoriteQuotes: [],
   test: DEFAULT_CONFIG,
 };
 

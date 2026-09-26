@@ -28,6 +28,15 @@ export function Shell({ children }: { children: ReactNode }) {
     useUI.getState().setTyping(false);
   }, [pathname]);
 
+  // focus mode is fullscreen: no header or footer at all
+  if (pathname === "/focus") {
+    return (
+      <main id="main" className="relative flex min-h-dvh flex-col">
+        {children}
+      </main>
+    );
+  }
+
   return (
     <div className="relative z-10 flex min-h-dvh flex-col">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-bg2 focus:px-3 focus:py-2">

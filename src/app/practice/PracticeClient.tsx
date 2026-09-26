@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { Code2, Quote, Waves, Eye, Flame, AtSign, Hash, Target, Timer, Type, Brain } from "lucide-react";
+import Link from "next/link";
+import { Code2, Quote, Waves, Eye, Flame, AtSign, Hash, Target, Timer, Type, Brain, Zap, Gauge, Moon, Globe } from "lucide-react";
 import { PageHeader, PageShell, SectionTitle } from "@/components/ui/primitives";
 import { CustomBuilder } from "@/components/practice/CustomBuilder";
 import { AdaptivePanel } from "@/components/practice/AdaptivePanel";
@@ -29,6 +30,13 @@ const DRILLS: Drill[] = [
   { id: "accuracy", name: "accuracy mode", line: "mistakes block you until you fix them.", icon: Target, config: { mode: "words", wordCount: 25, strict: true, flow: false } },
   { id: "sprint", name: "15s sprint", line: "short, loud, honest.", icon: Timer, config: { mode: "time", duration: 15, flow: false } },
   { id: "marathon", name: "marathon", line: "two minutes of pure stamina.", icon: Type, config: { mode: "time", duration: 120, flow: false } },
+];
+
+const EXPERIMENTS = [
+  { href: "/burst", name: "burst", line: "a 5–10 second drag race. peak speed, nothing else.", icon: Zap },
+  { href: "/pace", name: "pace", line: "hold a target speed. steadiness beats speed.", icon: Gauge },
+  { href: "/focus", name: "focus", line: "fullscreen scenes: rain, space, a city at night.", icon: Moon },
+  { href: "/internet", name: "type the internet", line: "twisters, URLs, JSON, speeches, torture tests.", icon: Globe },
 ];
 
 export function PracticeClient() {
@@ -74,8 +82,29 @@ export function PracticeClient() {
         </div>
       </section>
 
+      <section className="mb-16">
+        <SectionTitle n="c">experiments</SectionTitle>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {EXPERIMENTS.map((x) => (
+            <Link
+              key={x.href}
+              href={x.href}
+              className="press group relative flex min-h-[11rem] flex-col justify-between overflow-hidden border border-line p-5 transition-colors hover:border-accent"
+              style={{ borderRadius: "calc(var(--radius) + 6px)" }}
+            >
+              <x.icon size={20} className="text-accent" />
+              <div>
+                <div className="display text-3xl font-bold text-fg">{x.name}</div>
+                <div className="mt-1 text-[0.82rem] leading-snug text-sub">{x.line}</div>
+              </div>
+              <span className="absolute right-4 top-4 font-mono text-xs text-faint transition-transform group-hover:translate-x-1 group-hover:text-accent">→</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section id="custom" className="mb-10 scroll-mt-8">
-        <SectionTitle n="c">custom test builder</SectionTitle>
+        <SectionTitle n="d">custom test builder</SectionTitle>
         <CustomBuilder />
       </section>
     </PageShell>

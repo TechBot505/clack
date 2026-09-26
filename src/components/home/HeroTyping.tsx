@@ -26,7 +26,10 @@ export function HeroTyping({ onTypingChange }: { onTypingChange?: (typing: boole
 
   useEffect(() => {
     if (!done) return;
+    // ignore the keystroke that finished the run (it's still bubbling when this registers)
+    const since = performance.now();
     const onKey = (e: KeyboardEvent) => {
+      if (e.timeStamp <= since) return;
       if (document.querySelector("[role=dialog]")) return;
       if (e.key === "Tab" || e.key === "Enter") {
         e.preventDefault();

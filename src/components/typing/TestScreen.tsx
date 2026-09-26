@@ -172,7 +172,9 @@ export function TestScreen({
 
   // keys that work while results are showing
   useEffect(() => {
+    const since = performance.now();
     const onKey = (e: KeyboardEvent) => {
+      if (e.timeStamp <= since) return;
       if (useUI.getState().paletteOpen || document.querySelector("[role=dialog]")) return;
       const q = useSettings.getState().quickRestart;
       if (e.key === "Escape" && q !== "esc") {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useSettings } from "@/stores/settings";
 import { getTheme, type Atmosphere } from "@/lib/themes";
 
@@ -25,6 +26,8 @@ function useAtmosphere(): { atmos: Atmosphere; enabled: boolean; id: string } {
 
 export function Background() {
   const { atmos, enabled, id } = useAtmosphere();
+  const pathname = usePathname();
+  if (pathname === "/focus") return null; // focus mode brings its own scenery
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
       {atmos === "aurora" && <Aurora />}

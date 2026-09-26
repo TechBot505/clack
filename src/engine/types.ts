@@ -74,7 +74,7 @@ export interface TestConfig {
   confidence: Confidence;
   /** quote length filter */
   quoteLength: "any" | "short" | "medium" | "long";
-  quoteGroup: "any" | "books" | "philosophy" | "technology" | "speeches";
+  quoteGroup: "any" | "books" | "philosophy" | "technology" | "speeches" | "favorites";
   codeLanguage: string;
   customText: string;
   /** optional time limit for custom tests (seconds, 0 = none) */

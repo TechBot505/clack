@@ -62,6 +62,10 @@ export const api = {
   submitDaily: (date: string, testId: string) =>
     call<{ official: boolean }>("/api/daily", { method: "POST", body: JSON.stringify({ date, testId }) }),
   getDaily: (date: string) => call<DailyBoard>(`/api/daily?date=${encodeURIComponent(date)}`),
+  leaderboard: (q: { category: string; range: string; friends?: boolean }) =>
+    call<{ entries: { rank: number; name: string; avatar: string | null; wpm: number; you: boolean }[] }>(
+      `/api/leaderboard?category=${encodeURIComponent(q.category)}&range=${q.range}&friends=${q.friends ? 1 : 0}`,
+    ),
   me: () => call<{ user: { id: string; username: string | null; displayName: string | null; avatarUrl: string | null; visibility: string; createdAt: string } | null }>("/api/me"),
   updateMe: (patch: { username?: string; displayName?: string; visibility?: string }) =>
     call<{ ok: true }>("/api/me", { method: "PATCH", body: JSON.stringify(patch) }),

@@ -114,6 +114,7 @@ export const TypingSurface = forwardRef<TypingSurfaceHandle, TypingSurfaceProps>
         },
       },
       fixed,
+      { favorites: s.favoriteQuotes },
     );
     if (ghost) session.setGhost(ghost);
     sessionRef.current = session;

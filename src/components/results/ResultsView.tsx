@@ -7,7 +7,7 @@ import { motion, type Variants } from "motion/react";
 import { ArrowRight, Film, Repeat2, Share2, Sparkles, LogIn } from "lucide-react";
 import type { RunResult } from "@/engine/analyze";
 import type { PbImprovement, TestRecord } from "@/lib/records";
-import { generateInsights } from "@/engine/insights";
+import { codeErrors, generateInsights } from "@/engine/insights";
 import { categoryLabel } from "@/engine/config";
 import { describeTest, fmtDuration, sourceLine } from "@/lib/format";
 import { RollingNumber } from "@/components/ui/RollingNumber";
@@ -17,6 +17,7 @@ import { WpmChart } from "./WpmChart";
 import { playSound } from "@/lib/sound";
 import { useSettings } from "@/stores/settings";
 import { useClientAuth } from "@/lib/auth-client";
+import { FavoriteButton } from "./FavoriteButton";
 
 const ShareDialog = dynamic(() => import("./ShareDialog").then((m) => m.ShareDialog), { ssr: false });
 
@@ -88,6 +89,7 @@ export function ResultsView({ record, result, pbs, history, cinematic = false, f
             <span className="text-accent">result</span>
             <span>{describeTest(record)}</span>
             {src && <span className="normal-case tracking-normal text-faint">{src}</span>}
+            {record.mode === "quote" && record.sourceId && <FavoriteButton id={record.sourceId} />}
           </div>
 
           {isPb && bestPb && (
@@ -160,7 +162,22 @@ export function ResultsView({ record, result, pbs, history, cinematic = false, f
           />
           <Stat label="keystrokes" value={String(record.keystrokes)} sub={`${record.backspaces} backspace${record.backspaces === 1 ? "" : "s"}`} />
           <Stat label="time" value={fmtDuration(record.durationMs)} sub={`${(record.durationMs / 1000).toFixed(2)}s`} />
-          <Stat label="words" value={String(record.wordsTyped)} />
+          {record.mode === "code" ? (
+            <Stat
+              label="code errors"
+              title="mistakes on syntax characters / on letters and digits"
+              value={
+                <>
+                  <span>{codeErrors(result.keyStats).symbols}</span>
+                  <span className="text-faint">/</span>
+                  <span>{codeErrors(result.keyStats).letters}</span>
+                </>
+              }
+              sub="syntax · letters"
+            />
+          ) : (
+            <Stat label="words" value={String(record.wordsTyped)} />
+          )}
         </motion.dl>
       </div>
 

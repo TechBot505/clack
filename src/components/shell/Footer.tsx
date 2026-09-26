@@ -26,6 +26,9 @@ export function Footer() {
         <Link href="/records" className="hover:text-sub">
           records
         </Link>
+        <Link href="/leaderboard" className="hover:text-sub">
+          leaderboards
+        </Link>
         <span className="text-faint/70">clack. v0.1</span>
       </div>
     </footer>
