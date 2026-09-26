@@ -77,6 +77,8 @@ export interface TestConfig {
   quoteGroup: "any" | "books" | "philosophy" | "technology" | "speeches";
   codeLanguage: string;
   customText: string;
+  /** optional time limit for custom tests (seconds, 0 = none) */
+  customTimer: number;
   /** Hide all live stats and fade the UI while typing. */
   flow: boolean;
   /** Accuracy mode: mistakes block progress and must be fixed. */
@@ -97,6 +99,7 @@ export const DEFAULT_CONFIG: TestConfig = {
   quoteGroup: "any",
   codeLanguage: "any",
   customText: "",
+  customTimer: 0,
   flow: false,
   strict: false,
 };

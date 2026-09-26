@@ -20,6 +20,7 @@ export function clampConfig(c: TestConfig): TestConfig {
     duration: Math.round(Math.min(LIMITS.maxDuration, Math.max(LIMITS.minDuration, c.duration || 30))),
     wordCount: Math.round(Math.min(LIMITS.maxWords, Math.max(LIMITS.minWords, c.wordCount || 25))),
     customText: (c.customText ?? "").slice(0, LIMITS.maxCustomText),
+    customTimer: Math.round(Math.min(LIMITS.maxDuration, Math.max(0, c.customTimer || 0))),
   };
 }
 
