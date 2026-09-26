@@ -32,7 +32,12 @@ export interface Settings {
   showTimer: boolean;
   showProgress: boolean;
   quickRestart: QuickRestart;
+  /** master switch for every sound */
+  sound: boolean;
+  /** keyboard sound pack ("off" = no key clicks) */
   soundPack: SoundPack;
+  /** interface sounds: test complete, personal best, achievements, countdowns… */
+  uiSounds: boolean;
   volume: number; // 0..1
   errorSound: boolean;
   backgroundFx: boolean;
@@ -73,7 +78,9 @@ export const DEFAULT_SETTINGS: Settings = {
   showTimer: true,
   showProgress: true,
   quickRestart: "tab",
-  soundPack: "off",
+  sound: true,
+  soundPack: "soft",
+  uiSounds: true,
   volume: 0.5,
   errorSound: true,
   backgroundFx: true,
@@ -115,7 +122,16 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: SETTINGS_KEY,
-      version: 1,
+      version: 2,
+      // v2: sound became a first-class feature (master switch + interface sounds).
+      // Earlier installs defaulted to silent; move them to the new gentle default.
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Partial<Settings>;
+        if (version < 2) {
+          return { ...p, sound: true, uiSounds: true, soundPack: !p.soundPack || p.soundPack === "off" ? "soft" : p.soundPack };
+        }
+        return p;
+      },
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

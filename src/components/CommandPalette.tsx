@@ -23,6 +23,7 @@ import {
   Type,
   User,
   Volume2,
+  VolumeX,
   Waves,
   Zap,
   Hash,
@@ -39,6 +40,7 @@ import { THEMES, getTheme } from "@/lib/themes";
 import { useClientAuth } from "@/lib/auth-client";
 import type { TestConfig } from "@/engine/types";
 import { triggerEasterEgg } from "./EasterEggs";
+import { sfx } from "@/lib/sfx";
 import { useProgression } from "@/lib/use-progression";
 
 interface Cmd {
@@ -148,12 +150,36 @@ function PaletteBody() {
         icon: Type,
         run: () => s().set({ caretStyle: c }),
       })),
-      ...(["off", "mechanical", "typewriter", "soft", "retro", "digital", "bubble"] as SoundPack[]).map((p) => ({
-        id: `sound-${p}`,
-        label: p === "off" ? "Sound: off" : `Sound: ${p}`,
+      {
+        id: "sound-master",
+        label: s().sound ? "Mute all sounds" : "Turn sounds on",
+        group: "Sound",
+        icon: s().sound ? VolumeX : Volume2,
+        keywords: ["audio", "mute", "volume"],
+        run: () => {
+          const on = !s().sound;
+          s().set({ sound: on });
+          if (on) sfx("toggle");
+        },
+      },
+      {
+        id: "sound-ui",
+        label: s().uiSounds ? "Interface sounds: off" : "Interface sounds: on",
         group: "Sound",
         icon: Volume2,
-        run: () => s().set({ soundPack: p }),
+        keywords: ["chime", "results", "finish"],
+        run: () => s().set({ uiSounds: !s().uiSounds }),
+      },
+      ...(["off", "soft", "mechanical", "typewriter", "retro", "digital", "bubble"] as SoundPack[]).map((p) => ({
+        id: `sound-${p}`,
+        label: p === "off" ? "Keyboard sound: off" : `Keyboard sound: ${p}`,
+        group: "Sound",
+        icon: Volume2,
+        keywords: ["pack", "click", "clack"],
+        run: () => {
+          s().set({ soundPack: p, ...(p !== "off" ? { sound: true } : {}) });
+          if (p !== "off") [0, 90, 170].forEach((d, i) => setTimeout(() => sfx(i === 2 ? "space" : "key"), d));
+        },
       })),
       { id: "live", label: s().showLiveWpm ? "Hide live WPM" : "Show live WPM", group: "Appearance", icon: Zap, run: () => s().set({ showLiveWpm: !s().showLiveWpm }) },
       { id: "kb", label: s().showKeyboard ? "Hide on-screen keyboard" : "Show on-screen keyboard", group: "Appearance", icon: Keyboard, run: () => s().set({ showKeyboard: !s().showKeyboard }) },

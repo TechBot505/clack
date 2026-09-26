@@ -2,15 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { playSound } from "@/lib/sound";
-import { useSettings } from "@/stores/settings";
+import { sfx } from "@/lib/sfx";
 
 /** 3 · 2 · 1 · GO — a launch sequence. Calls onDone when it's time to type. */
 export function Countdown({ word = "GO", onDone }: { word?: string; onDone: () => void }) {
   const [n, setN] = useState(3);
   useEffect(() => {
-    const s = useSettings.getState();
-    playSound("key", s.soundPack, s.volume);
+    sfx(n === 0 ? "go" : "countdown");
     const id = setTimeout(() => {
       if (n > 1) setN(n - 1);
       else if (n === 1) setN(0);

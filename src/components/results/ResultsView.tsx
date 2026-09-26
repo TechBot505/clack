@@ -14,8 +14,7 @@ import { RollingNumber } from "@/components/ui/RollingNumber";
 import { KeyboardHeatmap } from "@/components/KeyboardHeatmap";
 import { Confetti } from "./Confetti";
 import { WpmChart } from "./WpmChart";
-import { playSound } from "@/lib/sound";
-import { useSettings } from "@/stores/settings";
+import { sfxLater } from "@/lib/sfx";
 import { useClientAuth } from "@/lib/auth-client";
 import { FavoriteButton } from "./FavoriteButton";
 
@@ -45,11 +44,12 @@ export function ResultsView({ record, result, pbs, history, cinematic = false, f
   const hyper = record.wpm >= 150;
   const slow = cinematic ? 1.8 : 1;
 
+  // The completion chime already played when the test ended; the reveal only
+  // adds a flourish when something special happened, timed with its animation.
   useEffect(() => {
-    const s = useSettings.getState();
-    const t = setTimeout(() => playSound(isPb ? "pb" : "finish", s.soundPack, s.volume), 250 * slow);
-    return () => clearTimeout(t);
-  }, [isPb, slow]);
+    if (isPb) return sfxLater("pb", 520 * slow);
+    if (perfect) return sfxLater("perfect", 1100 * slow);
+  }, [isPb, perfect, slow]);
 
   // share shortcut
   useEffect(() => {

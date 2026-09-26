@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useUI } from "@/stores/ui";
 import { useSettings } from "@/stores/settings";
+import { sfx } from "@/lib/sfx";
 import { setEgg } from "@/lib/eggs";
 
 /**
@@ -52,6 +53,7 @@ export function EasterEggs() {
           setComet(true);
           setEgg("konami");
           useUI.getState().toast({ title: "↑↑↓↓←→←→ba", body: "cursor upgraded. for a while.", tone: "accent" });
+          sfx("unlock");
           setTimeout(() => setComet(false), 30000);
         }
       } else {
@@ -67,6 +69,7 @@ export function EasterEggs() {
         if (!s.unlockedThemes.includes("nebula")) {
           s.set({ unlockedThemes: [...s.unlockedThemes, "nebula"] });
           useUI.getState().toast({ title: "a new theme drifted in.", body: "look for Nebula in the theme list.", tone: "accent" });
+          sfx("unlock");
         }
       }
     };

@@ -85,7 +85,7 @@ export function SettingsClient() {
                 reset
               </button>
             </div>
-            <TypingSurface config={previewConfig} nonce={nonce} lines={2} captureGlobal={false} focusMode={false} onFinish={() => setNonce((n) => n + 1)} onRestart={() => setNonce((n) => n + 1)} />
+            <TypingSurface config={previewConfig} nonce={nonce} lines={2} captureGlobal={false} focusMode={false} onFinish={() => setNonce((n) => n + 1)} onRestart={() => setNonce((n) => n + 1)} finishSound={false} />
           </div>
 
           <Section id="appearance" title="appearance">

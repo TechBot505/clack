@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
-import { Command, Moon, Sun, UserRound } from "lucide-react";
+import { Command, Moon, Sun, UserRound, Volume2, VolumeX } from "lucide-react";
+import { sfx, primeAudio } from "@/lib/sfx";
 import { Logo } from "./Logo";
 import { useUI } from "@/stores/ui";
 import { useSettings } from "@/stores/settings";
 import { getTheme } from "@/lib/themes";
 import { useClientAuth } from "@/lib/auth-client";
+import { useHydrated } from "@/lib/hooks";
 
 export const NAV = [
   { href: "/type", label: "type", n: "01" },
@@ -22,6 +24,9 @@ export const NAV = [
 export function Header() {
   const pathname = usePathname();
   const openPalette = useUI((s) => s.openPalette);
+  const hydrated = useHydrated();
+  // saved settings only exist in the browser: render the default until hydrated
+  const soundOn = useSettings((s) => s.sound) || !hydrated;
   const theme = useSettings((s) => s.theme);
   const set = useSettings((s) => s.set);
   const auth = useClientAuth();
@@ -61,6 +66,24 @@ export function Header() {
           aria-label="Open command palette"
         >
           <Command size={12} /> K
+        </button>
+        <button
+          onClick={() => {
+            const on = !useSettings.getState().sound;
+            set({ sound: on });
+            if (on) {
+              primeAudio();
+              sfx("toggle");
+            }
+          }}
+          className="press grid h-8 w-8 place-items-center text-sub hover:text-fg"
+          aria-label={soundOn ? "Mute sounds" : "Turn sounds on"}
+          aria-pressed={soundOn}
+          title={soundOn ? "Sound on (click to mute)" : "Sound off (click to turn on)"}
+        >
+          <motion.span key={String(soundOn)} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 500, damping: 24 }}>
+            {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </motion.span>
         </button>
         <button
           onClick={() => set({ theme: dark ? useSettings.getState().lightTheme || "daylight" : useSettings.getState().darkTheme || "graphite", followSystem: false })}

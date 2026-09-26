@@ -9,7 +9,7 @@ import { TypingRenderer } from "./renderer";
 import { TestSession, type FinishedRun, type GhostTrack, type LiveStats } from "./session";
 import { useSettings } from "@/stores/settings";
 import { useUI } from "@/stores/ui";
-import { playSound, primeAudio } from "@/lib/sound";
+import { sfx, primeAudio } from "@/lib/sfx";
 
 export interface TypingSurfaceHandle {
   focus: () => void;
@@ -35,6 +35,8 @@ export interface TypingSurfaceProps {
   onRestart?: () => void;
   onKey?: (effect: InputEffect, key: string) => void;
   ariaLabel?: string;
+  /** play the completion chime when a run finishes (default true) */
+  finishSound?: boolean;
 }
 
 function isTextField(el: Element | null): boolean {
@@ -49,7 +51,7 @@ function isTextField(el: Element | null): boolean {
 }
 
 export const TypingSurface = forwardRef<TypingSurfaceHandle, TypingSurfaceProps>(function TypingSurface(
-  { config, nonce, fixed, captureGlobal = true, focusMode = true, lines = 3, ghost, className = "", onStart, onTick, onFinish, onRestart, onKey, ariaLabel },
+  { config, nonce, fixed, captureGlobal = true, focusMode = true, lines = 3, ghost, className = "", onStart, onTick, onFinish, onRestart, onKey, ariaLabel, finishSound = true },
   ref,
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -63,6 +65,8 @@ export const TypingSurface = forwardRef<TypingSurfaceHandle, TypingSurfaceProps>
   const [focused, setFocused] = useState(true);
 
   // keep callbacks fresh without re-creating the session
+  const finishSoundRef = useRef(finishSound);
+  finishSoundRef.current = finishSound;
   const cbs = useRef({ onStart, onTick, onFinish, onRestart, onKey });
   cbs.current = { onStart, onTick, onFinish, onRestart, onKey };
 
@@ -98,16 +102,15 @@ export const TypingSurface = forwardRef<TypingSurfaceHandle, TypingSurfaceProps>
         },
         onFinish: (run) => {
           useUI.getState().setTyping(false);
+          // only real runs earn the completion chime (not an instant restart)
+          if (finishSoundRef.current && run.record.keystrokes >= 5 && run.record.durationMs >= 1000) sfx("finish");
           cbs.current.onFinish(run);
         },
         onTick: (live) => cbs.current.onTick?.(live),
         onKey: (eff, key) => {
-          const st = useSettings.getState();
-          if (st.soundPack !== "off") {
-            if (eff.kind === "back") playSound("back", st.soundPack, st.volume);
-            else if (!eff.correct && st.errorSound) playSound("error", st.soundPack, st.volume);
-            else playSound(eff.kind === "sep" ? "space" : "key", st.soundPack, st.volume);
-          }
+          if (eff.kind === "back") sfx("back");
+          else if (!eff.correct) sfx("error");
+          else sfx(eff.kind === "sep" ? "space" : "key");
           if (focusMode) useUI.getState().setTyping(true);
           window.dispatchEvent(new CustomEvent("clack:key", { detail: { key, correct: eff.correct, kind: eff.kind } }));
           cbs.current.onKey?.(eff, key);
@@ -167,6 +170,7 @@ export const TypingSurface = forwardRef<TypingSurfaceHandle, TypingSurfaceProps>
   }, []);
 
   const restart = useCallback(() => {
+    sfx("restart");
     cbs.current.onRestart?.();
   }, []);
 

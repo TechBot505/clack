@@ -1,5 +1,6 @@
 "use client";
 
+import { sfxLater } from "@/lib/sfx";
 import { useMemo, useState } from "react";
 import { TestScreen, type Override } from "@/components/typing/TestScreen";
 import { dailySpec, utcDay } from "@/lib/daily";
@@ -32,6 +33,7 @@ export function DailyPlayClient() {
         const { official } = recordDaily(date, record);
         if (official) {
           useUI.getState().toast({ title: "official score locked in", body: "practice as much as you like now. only the first run counts.", tone: "accent" });
+          sfxLater("achievement", 700);
         }
         if (useHistory.getState().source === "remote") void api.submitDaily(date, record.id).catch(() => {});
       }}

@@ -23,24 +23,23 @@ import { useMediaQuery } from "@/lib/hooks";
 import { progressionFrom, type Progression } from "@/lib/use-progression";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { UNLOCKS } from "@/lib/progression";
-import { playSound } from "@/lib/sound";
+import { sfx } from "@/lib/sfx";
 
 /** Toast newly unlocked achievements and level-ups (after the result reveal). */
 function announceProgress(before: Progression, after: Progression) {
   const fresh = ACHIEVEMENTS.filter((a) => after.achievements[a.id] && !before.achievements[a.id]);
-  const s = useSettings.getState();
   fresh.forEach((a, i) =>
     setTimeout(() => {
       useUI.getState().toast({ title: `achievement · ${a.name}`, body: a.description, tone: "accent" });
-      playSound("achievement", s.soundPack, s.volume);
+      sfx("achievement");
     }, 1800 + i * 900),
   );
   if (after.on && after.level > before.level) {
     const unlock = UNLOCKS.find((u) => u.level === after.level);
-    setTimeout(
-      () => useUI.getState().toast({ title: `level ${after.level}`, body: unlock ? `unlocked: ${unlock.label}` : "keep going.", tone: "accent" }),
-      1800 + fresh.length * 900,
-    );
+    setTimeout(() => {
+      useUI.getState().toast({ title: `level ${after.level}`, body: unlock ? `unlocked: ${unlock.label}` : "keep going.", tone: "accent" });
+      sfx("levelup");
+    }, 1800 + fresh.length * 900);
   }
 }
 
@@ -185,6 +184,7 @@ export function TestScreen({
       if (!finished) return;
       if (e.key === "Tab" || (e.key === "Escape" && q === "esc")) {
         e.preventDefault();
+        sfx("restart");
         restart();
       }
     };
@@ -293,7 +293,10 @@ export function TestScreen({
               />
               <div className="chrome mt-8 flex items-center justify-center gap-4">
                 <button
-                  onClick={() => restart()}
+                  onClick={() => {
+                    sfx("restart");
+                    restart();
+                  }}
                   className="press grid h-10 w-10 place-items-center text-sub hover:text-fg"
                   aria-label="Restart test"
                   title="Restart (tab)"
@@ -318,7 +321,10 @@ export function TestScreen({
               history={history}
               cinematic={flow}
               firstTest={finished.firstTest}
-              onNext={() => restart()}
+              onNext={() => {
+                sfx("restart");
+                restart();
+              }}
               onRepeat={() => {
                 const r = finished.run.record;
                 setFixed({ seed: r.seed ?? undefined, sourceId: r.sourceId ?? undefined, text: r.customText ?? undefined });
