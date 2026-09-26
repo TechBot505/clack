@@ -47,6 +47,18 @@ export interface DailyBoard {
   you: { wpm: number; accuracy: number; rank: number; percentile: number } | null;
 }
 
+export interface PublicProfile {
+  user: { username: string | null; displayName: string | null; avatarUrl: string | null; createdAt: number; xp: number };
+  self: boolean;
+  following: boolean;
+  followsYou: boolean;
+  followers: number;
+  followingCount: number;
+  hidden: boolean;
+  tests: TestRecord[];
+  pbs: { category: string; wpm: number; accuracy: number; at: number }[];
+}
+
 export const api = {
   status: () => call<ServerStatus>("/api/status"),
   listTests: (limit = 1000) => call<{ tests: TestRecord[] }>(`/api/tests?limit=${limit}`),
@@ -66,6 +78,9 @@ export const api = {
     call<{ entries: { rank: number; name: string; avatar: string | null; wpm: number; you: boolean }[] }>(
       `/api/leaderboard?category=${encodeURIComponent(q.category)}&range=${q.range}&friends=${q.friends ? 1 : 0}`,
     ),
+  profile: (username: string) => call<PublicProfile>(`/api/users/${encodeURIComponent(username)}`),
+  follow: (username: string, on: boolean) =>
+    call<{ following: boolean }>(`/api/users/${encodeURIComponent(username)}/follow`, { method: on ? "POST" : "DELETE" }),
   me: () => call<{ user: { id: string; username: string | null; displayName: string | null; avatarUrl: string | null; visibility: string; createdAt: string } | null }>("/api/me"),
   updateMe: (patch: { username?: string; displayName?: string; visibility?: string }) =>
     call<{ ok: true }>("/api/me", { method: "PATCH", body: JSON.stringify(patch) }),

@@ -9,6 +9,9 @@
 - **Records:** one PB per category, each with its progression over time.
 - **Practice:** adaptive training built around your weakest letter pairs, drills, and a custom test builder that creates shareable challenge links.
 - **Daily challenge:** the same text for everyone every day, one official attempt, streaks and a leaderboard.
+- **Profile:** Typing DNA (generative artwork you can export), Typing Fingerprint (radar, key constellation, habits), achievements (some secret), goals, optional XP levels with cosmetic unlocks.
+- **Experiments:** Speed Burst (a 5–10 s drag race), Consistency Challenge (hold a target pace), Focus mode (fullscreen rain, space, night city, cozy room and terminal scenes), and Type the Internet (tongue twisters, URLs, JSON, terminal commands, speeches…).
+- **Social** (with a database): public profiles at `/u/<handle>` with privacy settings, following, and global and friends leaderboards.
 - **Everywhere:** a command palette (`Ctrl/⌘ K`), keyboard-first navigation, 6 synthesized sound packs, accessibility modes, and a few undocumented surprises.
 
 ## Stack
@@ -86,4 +89,4 @@ prisma/           schema + migrations (includes models for races, friends, goals
 ## Roadmap
 
 - Real-time races: the schema has `Race` and `RaceParticipant`. What's left is plugging in a realtime host such as PartyKit, Liveblocks, or a small WebSocket server.
-- Friends and public leaderboards UI: `GET /api/leaderboard` is ready.
+- More language packs: they're just word lists.

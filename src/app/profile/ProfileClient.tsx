@@ -155,9 +155,29 @@ function AccountProfile() {
           <div className="label mb-2">who can see your profile</div>
           <Segmented id="vis" label="Profile visibility" size="sm" value={visibility} onChange={setVisibility} options={[{ id: "public", label: "everyone" }, { id: "friends", label: "friends" }, { id: "private", label: "only me" }]} />
         </div>
-        <button onClick={save} disabled={saving} className="press bg-accent px-4 py-2 font-mono text-xs text-on-accent disabled:opacity-50" style={{ borderRadius: "var(--radius)" }}>
-          {saving ? "saving…" : "save"}
-        </button>
+        <div className="flex flex-wrap items-center gap-4">
+          <button onClick={save} disabled={saving} className="press bg-accent px-4 py-2 font-mono text-xs text-on-accent disabled:opacity-50" style={{ borderRadius: "var(--radius)" }}>
+            {saving ? "saving…" : "save"}
+          </button>
+          {username && (
+            <Link href={`/u/${username}`} className="font-mono text-xs text-sub underline decoration-line underline-offset-4 hover:text-fg">
+              view public page → /u/{username}
+            </Link>
+          )}
+        </div>
+        <form
+          className="flex items-center gap-2 pt-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const v = (new FormData(e.currentTarget).get("q") as string | null)?.trim().toLowerCase().replace(/^@/, "");
+            if (v) window.location.href = `/u/${encodeURIComponent(v)}`;
+          }}
+        >
+          <input name="q" placeholder="find a typist: @handle" className="w-full max-w-xs border border-line bg-bg2 px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent" style={{ borderRadius: "var(--radius)" }} />
+          <button type="submit" className="press font-mono text-xs text-sub hover:text-fg">
+            go
+          </button>
+        </form>
       </div>
     </section>
   );

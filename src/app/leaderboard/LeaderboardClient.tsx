@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion } from "motion/react";
 import { Trophy } from "lucide-react";
 import { PageHeader, PageShell, Segmented } from "@/components/ui/primitives";
@@ -94,7 +95,13 @@ export function LeaderboardClient() {
               className={`grid grid-cols-[3rem_1fr_auto] items-center gap-4 border-b border-line py-3 ${e.you ? "text-accent" : "text-fg"}`}
             >
               <span className={`font-mono ${e.rank <= 3 ? "text-accent" : "text-faint"}`}>{e.rank <= 3 ? <Trophy size={15} /> : e.rank}</span>
-              <span className="truncate font-mono text-sm">{e.name}</span>
+              {e.name !== "anonymous" ? (
+                <Link href={`/u/${encodeURIComponent(e.name)}`} className="truncate font-mono text-sm hover:underline">
+                  {e.name}
+                </Link>
+              ) : (
+                <span className="truncate font-mono text-sm">{e.name}</span>
+              )}
               <span className="display text-2xl font-semibold">
                 {e.wpm.toFixed(0)} <span className="font-mono text-xs text-faint">wpm</span>
               </span>
