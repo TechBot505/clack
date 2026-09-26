@@ -119,7 +119,7 @@ export function HistoryClient() {
         kicker="history"
         title={
           <>
-            {tests.length} <span className="italic-serif font-normal text-sub">tests,</span> {fmtDuration(tests.reduce((a, t) => a + t.durationMs, 0))}
+            {tests.length} <span className="italic-serif font-normal text-sub">{tests.length === 1 ? "test," : "tests,"}</span> {fmtDuration(tests.reduce((a, t) => a + t.durationMs, 0))}
           </>
         }
         dek="Every run you've finished. Click a day to see what happened, click a test to replay it."

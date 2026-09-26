@@ -11,6 +11,8 @@ export interface Toast {
 
 interface UIState {
   paletteOpen: boolean;
+  /** increments on every open so the palette always mounts fresh */
+  paletteKey: number;
   /** test running: chrome fades out */
   typing: boolean;
   toasts: Toast[];
@@ -29,12 +31,16 @@ let toastId = 1;
 
 export const useUI = create<UIState>((set, get) => ({
   paletteOpen: false,
+  paletteKey: 0,
   typing: false,
   toasts: [],
   restartNonce: 0,
-  openPalette: () => set({ paletteOpen: true }),
+  openPalette: () => {
+    if (typeof document !== "undefined") (document.activeElement as HTMLElement | null)?.blur?.();
+    set({ paletteOpen: true, paletteKey: get().paletteKey + 1 });
+  },
   closePalette: () => set({ paletteOpen: false }),
-  togglePalette: () => set({ paletteOpen: !get().paletteOpen }),
+  togglePalette: () => (get().paletteOpen ? get().closePalette() : get().openPalette()),
   setTyping: (v) => {
     if (get().typing === v) return;
     set({ typing: v });

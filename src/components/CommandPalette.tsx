@@ -53,6 +53,7 @@ interface Cmd {
 export function CommandPalette() {
   const open = useUI((s) => s.paletteOpen);
   const toggle = useUI((s) => s.togglePalette);
+  const paletteKey = useUI((s) => s.paletteKey);
 
   // Cmd/Ctrl+K anywhere
   useEffect(() => {
@@ -67,7 +68,7 @@ export function CommandPalette() {
   }, [toggle]);
 
   // The body mounts fresh on every open, so search and sub-page reset naturally.
-  return <AnimatePresence>{open && <PaletteBody key="palette" />}</AnimatePresence>;
+  return <AnimatePresence>{open && <PaletteBody key={paletteKey} />}</AnimatePresence>;
 }
 
 function PaletteBody() {
@@ -124,7 +125,16 @@ function PaletteBody() {
           s().set({ theme: cur.dark ? s().lightTheme || "daylight" : s().darkTheme || "graphite", followSystem: false });
         },
       },
-      { id: "themes", label: "Change theme…", group: "Appearance", icon: Palette, run: () => setPage("themes") },
+      {
+        id: "themes",
+        label: "Change theme…",
+        group: "Appearance",
+        icon: Palette,
+        run: () => {
+          setSearch("");
+          setPage("themes");
+        },
+      },
       ...(["line", "block", "underscore", "glow", "pulse"] as CaretStyle[]).map((c) => ({
         id: `caret-${c}`,
         label: `Caret: ${c}`,

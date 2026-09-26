@@ -66,7 +66,9 @@ CREATE TABLE "TypingEvent" (
     "version" INTEGER NOT NULL DEFAULT 1,
     "keys" TEXT NOT NULL,
     "deltas" INTEGER[],
+    "endMs" INTEGER NOT NULL DEFAULT 0,
     "text" TEXT,
+    "meta" JSONB,
 
     CONSTRAINT "TypingEvent_pkey" PRIMARY KEY ("testId")
 );

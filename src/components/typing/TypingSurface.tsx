@@ -177,6 +177,11 @@ export const TypingSurface = forwardRef<TypingSurfaceHandle, TypingSurfaceProps>
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // a dialog (palette, share…) owns the keyboard while it's open
+      if (useUI.getState().paletteOpen || document.querySelector("[role=dialog]")) {
+        if (e.key !== "Escape") e.preventDefault();
+        return;
+      }
       const t = e.timeStamp || performance.now();
       primeAudio();
       if (e.key === "Tab") {
@@ -227,6 +232,10 @@ export const TypingSurface = forwardRef<TypingSurfaceHandle, TypingSurfaceProps>
   const onInput = useCallback(
     (e: React.FormEvent<HTMLInputElement>) => {
       const el = e.currentTarget;
+      if (useUI.getState().paletteOpen) {
+        el.value = lastValue.current;
+        return;
+      }
       const v = el.value;
       const prev = lastValue.current;
       const t = e.timeStamp || performance.now();

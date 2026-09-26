@@ -114,8 +114,12 @@ model TypingEvent {
   version  Int        @default(1)
   keys     String
   deltas   Int[]
+  /// ms from first keystroke to the end of the test
+  endMs    Int        @default(0)
   /// Target text (only stored when it cannot be regenerated from a seed).
   text     String?
+  /// Engine options used for the run: { stopOnError, confidence, strict }
+  meta     Json?
 }
 
 model PersonalBest {

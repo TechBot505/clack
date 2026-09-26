@@ -60,6 +60,8 @@ export interface RunResult {
   longestStreak: number;
   pauses: { count: number; totalMs: number };
   events: ReplayEvent[];
+  /** the run reached the end of its text */
+  completed: boolean;
   /** final typed text per word (for rendering a static result) */
   typed: string[];
 }
@@ -194,6 +196,8 @@ export function analyzeRun(built: BuiltText, options: EngineOptions, log: RunLog
     if (key === KEY_BACKSPACE || key === KEY_WORD_BACKSPACE) prevCharKey = "";
   }
 
+  /** did the text itself end the test (vs. a timer / manual finish)? */
+  const completed = engine.finished;
   if (!engine.finished) engine.finish(endMs);
   snapshotBefore(endMs + 1);
 
@@ -260,6 +264,7 @@ export function analyzeRun(built: BuiltText, options: EngineOptions, log: RunLog
     longestStreak,
     pauses: { count: pausesCount, totalMs: pausesMs },
     events,
+    completed,
     typed: engine.typed.slice(0, typedWordCount),
   };
 }
