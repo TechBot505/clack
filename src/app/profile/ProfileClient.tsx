@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useHistory } from "@/stores/history";
 import { computeStreaks, computeTotals } from "@/lib/records";
 import { categoryLabel } from "@/engine/config";
@@ -113,6 +114,7 @@ function Identity({ name, image, since }: { name: string; image: string | null; 
 }
 
 function AccountProfile() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [visibility, setVisibility] = useState<"public" | "friends" | "private">("public");
   const [saving, setSaving] = useState(false);
@@ -170,7 +172,7 @@ function AccountProfile() {
           onSubmit={(e) => {
             e.preventDefault();
             const v = (new FormData(e.currentTarget).get("q") as string | null)?.trim().toLowerCase().replace(/^@/, "");
-            if (v) window.location.href = `/u/${encodeURIComponent(v)}`;
+            if (v) router.push(`/u/${encodeURIComponent(v)}`);
           }}
         >
           <input name="q" placeholder="find a typist: @handle" className="w-full max-w-xs border border-line bg-bg2 px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent" style={{ borderRadius: "var(--radius)" }} />
