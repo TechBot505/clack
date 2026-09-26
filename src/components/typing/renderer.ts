@@ -9,7 +9,7 @@ import type { InputEffect, TypingEngine } from "@/engine/engine";
  * error animations don't retrigger and input latency stays flat at 150+ WPM.
  */
 
-export type CaretStyle = "line" | "block" | "underscore" | "glow" | "pulse";
+export type CaretStyle = "line" | "block" | "underscore" | "glow" | "pulse" | "comet";
 
 const LETTER = "tw-l";
 
@@ -202,6 +202,7 @@ export class TypingRenderer {
     const h = el.offsetHeight;
     const ch = target.offsetHeight || h * 0.6;
     const y = this.caretStyle === "underscore" && target === this.caret ? top + h * 0.82 : top + (h - ch) / 2;
+    if (this.caretStyle === "comet" && target === this.caret) x -= target.offsetWidth / 2;
     if (this.caretStyle === "block" && w && target === this.caret) target.style.width = `${w}px`;
     target.style.transform = `translate3d(${x - (this.caretStyle === "line" || this.caretStyle === "glow" || this.caretStyle === "pulse" ? 1 : 0)}px, ${y}px, 0)`;
     if (target === this.caret) this.scrollTo(top);

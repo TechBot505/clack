@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 
 // Settings are a flat bag of primitives plus the last test config. Keep it
 // permissive (clients merge with defaults) but bounded in size and shape.
-const primitive = z.union([z.string().max(5200), z.number(), z.boolean(), z.null(), z.array(z.string().max(40)).max(50)]);
+const scalar = z.union([z.string().max(5200), z.number(), z.boolean(), z.null()]);
+const primitive = z.union([scalar, z.array(z.string().max(40)).max(50), z.array(z.record(z.string().max(40), scalar)).max(20)]);
 const settingsSchema = z.object({
   settings: z.record(z.string().max(40), z.union([primitive, z.record(z.string().max(40), primitive)])),
 });

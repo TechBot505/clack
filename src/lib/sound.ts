@@ -94,6 +94,10 @@ function playKey(c: AudioContext, pack: SoundPack, t: number, heavy: boolean) {
     case "digital":
       tone(c, t, { freq: jitter(heavy ? 1200 : 1800, 0.03), type: "sine", peak: 0.12, decay: 0.022 });
       break;
+    case "chime":
+      tone(c, t, { freq: jitter(heavy ? 660 : 1320, 0.015), type: "sine", peak: 0.1, decay: 0.16 });
+      tone(c, t, { freq: jitter(heavy ? 1320 : 2640, 0.015), type: "sine", peak: 0.04, decay: 0.1 });
+      break;
     case "bubble":
       tone(c, t, { freq: jitter(heavy ? 300 : 500, 0.15), type: "sine", peak: 0.3, decay: 0.07, slideTo: jitter(heavy ? 700 : 1100, 0.1) });
       break;

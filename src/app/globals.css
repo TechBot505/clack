@@ -70,7 +70,7 @@
   --bg-3: #e1dfd7;
   --fg: #151515;
   --sub: #6d6a63;
-  --faint: #b3afa5;
+  --faint: #a39f95;
   --line: #dcd9d1;
   --accent: #2f5bff;
   --accent-2: #e8590c;
@@ -90,7 +90,7 @@
   --bg-3: #16204a;
   --fg: #dfe6ff;
   --sub: #7d88b3;
-  --faint: #39426b;
+  --faint: #465281;
   --line: #1b2447;
   --accent: #8aa8ff;
   --accent-2: #c792ea;
@@ -112,7 +112,7 @@
   --bg-3: #101c10;
   --fg: #b7ffb0;
   --sub: #5fae58;
-  --faint: #2a4d27;
+  --faint: #3b7036;
   --line: #143014;
   --accent: #39ff14;
   --accent-2: #f5ff6b;
@@ -132,7 +132,7 @@
   --bg-3: #ffdbe3;
   --fg: #4a2b35;
   --sub: #9a6b79;
-  --faint: #e3b3c1;
+  --faint: #cf92a5;
   --line: #f7d3dc;
   --accent: #ff5c8a;
   --accent-2: #8c6bd6;
@@ -153,7 +153,7 @@
   --bg-3: #1c0940;
   --fg: #f0e6ff;
   --sub: #9d86c9;
-  --faint: #45306e;
+  --faint: #5a4190;
   --line: #2a1350;
   --accent: #00f0ff;
   --accent-2: #ff2bd6;
@@ -174,7 +174,7 @@
   --bg-3: #e0d6c1;
   --fg: #2b2622;
   --sub: #7a6f62;
-  --faint: #bfb4a1;
+  --faint: #a6987f;
   --line: #d9cfbb;
   --accent: #b3372b;
   --accent-2: #2d5d7b;
@@ -195,7 +195,7 @@
   --bg-3: #0b2e40;
   --fg: #d6f3ff;
   --sub: #6fa3b8;
-  --faint: #24505f;
+  --faint: #2f6275;
   --line: #0e3446;
   --accent: #3ee6c5;
   --accent-2: #58a6ff;
@@ -215,7 +215,7 @@
   --bg-3: #2a1710;
   --fg: #ffe9d6;
   --sub: #b3876a;
-  --faint: #5a3a2a;
+  --faint: #6e4a36;
   --line: #2e1a12;
   --accent: #ff7a1a;
   --accent-2: #ffc94d;
@@ -249,13 +249,34 @@
   --grid: transparent;
 }
 
+[data-theme="solar"] {
+  --display: "Fraunces Variable", ui-serif, Georgia, serif;
+  --bg: #120d02;
+  --bg-2: #1b1405;
+  --bg-3: #271d09;
+  --fg: #fff4d6;
+  --sub: #b39a62;
+  --faint: #6b5a2f;
+  --line: #2c220c;
+  --accent: #ffc233;
+  --accent-2: #ff8a3d;
+  --accent-3: #fff08a;
+  --error: #ff5c5c;
+  --ok: #ffe08a;
+  --on-accent: #1b1405;
+  --radius: 6px;
+  --grain: 0.08;
+  --glow: color-mix(in oklab, var(--accent) 60%, transparent);
+  --grid: color-mix(in oklab, var(--accent) 7%, transparent);
+}
+
 [data-theme="nebula"] {
   --bg: #07030f;
   --bg-2: #0f0720;
   --bg-3: #190c33;
   --fg: #f3e9ff;
   --sub: #a68cc9;
-  --faint: #4a3470;
+  --faint: #5c4488;
   --line: #22123d;
   --accent: #ff7ae6;
   --accent-2: #7af0ff;
@@ -546,6 +567,21 @@ kbd,
   min-height: 2px;
   border-radius: 1px;
 }
+/* comet: a bright head with a permanent tail that stretches with speed */
+.caret[data-style="comet"] {
+  width: 0.34em;
+  height: 0.34em;
+  border-radius: 999px;
+  box-shadow: 0 0 12px var(--glow);
+}
+.caret[data-style="comet"]::after {
+  top: 20%;
+  height: 60%;
+  width: calc(0.8em + var(--vel) * 2.4em);
+  opacity: 0.8;
+  background: linear-gradient(to left, var(--caret), transparent);
+  border-radius: 999px;
+}
 .caret[data-style="glow"] {
   box-shadow: 0 0 calc(10px + var(--vel) * 18px) var(--glow), 0 0 2px var(--caret);
 }
@@ -582,6 +618,15 @@ kbd,
 }
 .caret.ghost::after {
   display: none;
+}
+
+/* neon on-screen keyboard (unlockable) */
+.kb-neon [data-k] {
+  border-color: color-mix(in oklab, var(--accent) 35%, var(--line));
+  box-shadow: inset 0 0 8px color-mix(in oklab, var(--accent) 12%, transparent);
+}
+.kb-neon [data-k][data-down="true"] {
+  box-shadow: 0 0 18px var(--glow), 0 0 4px var(--accent);
 }
 
 /* ── misc motion ──────────────────────────────────────────────────────────── */

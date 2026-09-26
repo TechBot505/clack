@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useUI } from "@/stores/ui";
 import { useSettings } from "@/stores/settings";
+import { setEgg } from "@/lib/eggs";
 
 /**
  * Hidden things. Deliberately undocumented in the UI.
@@ -49,6 +50,7 @@ export function EasterEggs() {
         if (progress.current === KONAMI.length) {
           progress.current = 0;
           setComet(true);
+          setEgg("konami");
           useUI.getState().toast({ title: "↑↑↓↓←→←→ba", body: "cursor upgraded. for a while.", tone: "accent" });
           setTimeout(() => setComet(false), 30000);
         }

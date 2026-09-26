@@ -39,6 +39,7 @@ import { THEMES, getTheme } from "@/lib/themes";
 import { useClientAuth } from "@/lib/auth-client";
 import type { TestConfig } from "@/engine/types";
 import { triggerEasterEgg } from "./EasterEggs";
+import { useProgression } from "@/lib/use-progression";
 
 interface Cmd {
   id: string;
@@ -165,6 +166,7 @@ function PaletteBody() {
   const secret = triggerEasterEgg.match(search);
   const groups = Array.from(new Set(commands.map((c) => c.group)));
   const unlocked = useSettings((s) => s.unlockedThemes);
+  const prog = useProgression();
 
   const run = (fn: () => void) => {
     close();
@@ -226,7 +228,7 @@ function PaletteBody() {
                 )}
                 {page === "themes" ? (
                   <Command.Group heading="Themes">
-                    {THEMES.filter((t) => !t.hidden || unlocked.includes(t.id)).map((t) => (
+                    {THEMES.filter((t) => (!t.hidden || unlocked.includes(t.id)) && (!t.unlock || prog.can(t.unlock))).map((t) => (
                       <Command.Item
                         key={t.id}
                         value={`${t.name} ${t.tagline}`}

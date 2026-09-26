@@ -6,9 +6,10 @@ import { DEFAULT_CONFIG, type TestConfig } from "@/engine/types";
 import { clampConfig } from "@/engine/config";
 import { getTheme } from "@/lib/themes";
 import { SETTINGS_KEY } from "@/lib/boot-script";
+import type { Goal } from "@/lib/goals";
 
-export type CaretStyle = "line" | "block" | "underscore" | "glow" | "pulse";
-export type SoundPack = "off" | "mechanical" | "typewriter" | "soft" | "retro" | "digital" | "bubble";
+export type CaretStyle = "line" | "block" | "underscore" | "glow" | "pulse" | "comet";
+export type SoundPack = "off" | "mechanical" | "typewriter" | "soft" | "retro" | "digital" | "bubble" | "chime";
 export type TypeFont = "jetbrains" | "geist-mono" | "fira-code" | "ibm-plex" | "space-mono" | "bricolage" | "fraunces";
 export type QuickRestart = "tab" | "tab-enter" | "esc";
 export type MotionPref = "system" | "reduced" | "full";
@@ -46,6 +47,11 @@ export interface Settings {
   privateMode: boolean;
   weeklyGoalWpm: number;
   unlockedThemes: string[];
+  /** optional XP / levels; off = no levels shown and every cosmetic available */
+  progression: boolean;
+  goals: Goal[];
+  neonKeyboard: boolean;
+  dnaHalo: boolean;
   /** last used test configuration */
   test: TestConfig;
 }
@@ -79,6 +85,10 @@ export const DEFAULT_SETTINGS: Settings = {
   privateMode: false,
   weeklyGoalWpm: 0,
   unlockedThemes: [],
+  progression: true,
+  goals: [],
+  neonKeyboard: false,
+  dnaHalo: false,
   test: DEFAULT_CONFIG,
 };
 

@@ -20,6 +20,29 @@ import { replayInput, type RunInput } from "@/engine/record";
 import { getLocal, setLocal } from "@/lib/local-store";
 import { KeyboardOverlay } from "@/components/KeyboardOverlay";
 import { useMediaQuery } from "@/lib/hooks";
+import { progressionFrom, type Progression } from "@/lib/use-progression";
+import { ACHIEVEMENTS } from "@/lib/achievements";
+import { UNLOCKS } from "@/lib/progression";
+import { playSound } from "@/lib/sound";
+
+/** Toast newly unlocked achievements and level-ups (after the result reveal). */
+function announceProgress(before: Progression, after: Progression) {
+  const fresh = ACHIEVEMENTS.filter((a) => after.achievements[a.id] && !before.achievements[a.id]);
+  const s = useSettings.getState();
+  fresh.forEach((a, i) =>
+    setTimeout(() => {
+      useUI.getState().toast({ title: `achievement · ${a.name}`, body: a.description, tone: "accent" });
+      playSound("achievement", s.soundPack, s.volume);
+    }, 1800 + i * 900),
+  );
+  if (after.on && after.level > before.level) {
+    const unlock = UNLOCKS.find((u) => u.level === after.level);
+    setTimeout(
+      () => useUI.getState().toast({ title: `level ${after.level}`, body: unlock ? `unlocked: ${unlock.label}` : "keep going.", tone: "accent" }),
+      1800 + fresh.length * 900,
+    );
+  }
+}
 
 const ResultsView = dynamic(() => import("@/components/results/ResultsView").then((m) => m.ResultsView), {
   ssr: false,
@@ -203,9 +226,13 @@ export function TestScreen({
       let pbs: PbImprovement[] = [];
       let record = run.record;
       if (run.record.durationMs >= MIN_VALID_MS || run.record.mode !== "time") {
+        const flags = { ...getLocal<Record<string, boolean>>("eggs", {}), nebula: useSettings.getState().unlockedThemes.includes("nebula") };
+        const on = useSettings.getState().progression;
+        const before = progressionFrom(useHistory.getState().tests, flags, on);
         const saved = await useHistory.getState().add(run.input, run.record, run.log);
         pbs = saved.pbs;
         record = saved.record;
+        announceProgress(before, progressionFrom(useHistory.getState().tests, flags, on));
       }
       setFinished({ run: { ...run, record }, pbs, firstTest });
       onRecordedRef.current?.(record, pbs);

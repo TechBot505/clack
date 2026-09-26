@@ -82,9 +82,9 @@ function PaperLines() {
 
 function SynthFloor({ animate }: { animate: boolean }) {
   return (
-    <div className="absolute inset-x-0 bottom-0 h-[45vh] overflow-hidden" style={{ perspective: "320px" }}>
+    <div className="absolute inset-x-0 bottom-0 h-[30vh] overflow-hidden" style={{ perspective: "320px" }}>
       <div
-        className="absolute left-1/2 top-[-30%] h-[40vh] w-[40vh] -translate-x-1/2 rounded-full opacity-30 blur-[2px]"
+        className="absolute left-1/2 top-[-38%] h-[34vh] w-[34vh] -translate-x-1/2 rounded-full opacity-[0.18] blur-[2px]"
         style={{ background: "linear-gradient(to bottom, var(--accent-3), var(--accent-2) 70%)", maskImage: "repeating-linear-gradient(to bottom, black 0 12px, transparent 12px 16px)" }}
       />
       <div

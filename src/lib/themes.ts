@@ -25,6 +25,8 @@ export interface ThemeMeta {
   /** swatches for pickers: bg, fg, accent */
   swatch: [string, string, string];
   hidden?: boolean;
+  /** cosmetic unlocked by level (see progression) */
+  unlock?: string;
 }
 
 export const THEMES: ThemeMeta[] = [
@@ -38,6 +40,7 @@ export const THEMES: ThemeMeta[] = [
   { id: "ocean", name: "Ocean", tagline: "cold water and moving light.", dark: true, atmosphere: "waves", swatch: ["#04161f", "#d6f3ff", "#3ee6c5"] },
   { id: "ember", name: "Ember", tagline: "a fire that rises as you type.", dark: true, atmosphere: "embers", swatch: ["#140b08", "#ffe9d6", "#ff7a1a"] },
   { id: "oled", name: "OLED", tagline: "true black. nothing else.", dark: true, atmosphere: "void", swatch: ["#000000", "#e6e6e6", "#f5f5f5"] },
+  { id: "solar", name: "Solar", tagline: "gold light for people who show up.", dark: true, atmosphere: "embers", swatch: ["#120d02", "#fff4d6", "#ffc233"], unlock: "solar" },
   { id: "nebula", name: "Nebula", tagline: "you found it.", dark: true, atmosphere: "nebula", swatch: ["#07030f", "#f3e9ff", "#ff7ae6"], hidden: true },
 ];
 

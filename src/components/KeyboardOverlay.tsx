@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { LAYOUTS, ROW_OFFSET, baseKey } from "@/lib/keyboard";
 import { useSettings } from "@/stores/settings";
+import { useProgression } from "@/lib/use-progression";
 
 /**
  * A quiet on-screen keyboard whose keys react to real keypresses.
@@ -10,6 +11,8 @@ import { useSettings } from "@/stores/settings";
  */
 export function KeyboardOverlay({ size = "min(4.2vw, 2.3rem)", className = "" }: { size?: string; className?: string }) {
   const layout = useSettings((s) => s.keyboardLayout);
+  const neon = useSettings((s) => s.neonKeyboard);
+  const prog = useProgression();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,7 +42,7 @@ export function KeyboardOverlay({ size = "min(4.2vw, 2.3rem)", className = "" }:
   }, [layout]);
 
   return (
-    <div ref={ref} className={`chrome-dim mx-auto mt-10 flex w-max flex-col gap-[0.3em] ${className}`} style={{ fontSize: size }} aria-hidden>
+    <div ref={ref} className={`chrome-dim mx-auto mt-10 flex w-max flex-col gap-[0.3em] ${neon && prog.can("neon") ? "kb-neon" : ""} ${className}`} style={{ fontSize: size }} aria-hidden>
       {LAYOUTS[layout].map((row, ri) => (
         <div key={ri} className="flex gap-[0.3em]" style={{ paddingLeft: `${ROW_OFFSET[ri]}em` }}>
           {row.map((k) => (

@@ -60,7 +60,7 @@ export function ProfileClient() {
       <ProfileExtras tests={tests} />
 
       <section className="mb-16">
-        <SectionTitle n="c" right={<Link href="/history" className="font-mono text-xs text-sub hover:text-fg">all history →</Link>}>
+        <SectionTitle n="e" right={<Link href="/history" className="font-mono text-xs text-sub hover:text-fg">all history →</Link>}>
           recent results
         </SectionTitle>
         {tests.slice(0, 6).map((t) => (
@@ -139,7 +139,7 @@ function AccountProfile() {
   };
   return (
     <section className="mb-10 max-w-2xl">
-      <SectionTitle n="d">public profile</SectionTitle>
+      <SectionTitle n="f">public profile</SectionTitle>
       <div className="space-y-5">
         <label className="block">
           <span className="label">username</span>

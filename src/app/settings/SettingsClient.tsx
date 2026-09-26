@@ -14,6 +14,14 @@ import { useHistory } from "@/stores/history";
 import { useClientAuth } from "@/lib/auth-client";
 import { useUI } from "@/stores/ui";
 import { LANGUAGES } from "@/content/languages";
+import { useProgression } from "@/lib/use-progression";
+import { UNLOCKS } from "@/lib/progression";
+import { Lock } from "lucide-react";
+
+function lockLabel(id: string) {
+  const u = UNLOCKS.find((x) => x.id === id);
+  return u ? `reach level ${u.level}` : "";
+}
 
 const SECTIONS = ["appearance", "typing", "behavior", "sound", "accessibility", "privacy", "account"] as const;
 
@@ -30,6 +38,7 @@ const FONTS: { id: TypeFont; label: string }[] = [
 export function SettingsClient() {
   const s = useSettings();
   const set = s.set;
+  const prog = useProgression();
   const [active, setActive] = useState<(typeof SECTIONS)[number]>("appearance");
   const [nonce, setNonce] = useState(0);
   const previewConfig = useMemo<TestConfig>(() => ({ ...DEFAULT_CONFIG, mode: "words", wordCount: 12 }), []);
@@ -85,11 +94,14 @@ export function SettingsClient() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
                 {visibleThemes.map((t) => {
                   const on = s.theme === t.id && !s.followSystem;
+                  const locked = !!t.unlock && !prog.can(t.unlock);
                   return (
                     <button
                       key={t.id}
-                      onClick={() => set({ theme: t.id, followSystem: false })}
+                      onClick={() => !locked && set({ theme: t.id, followSystem: false })}
                       aria-pressed={on}
+                      aria-disabled={locked}
+                      title={locked ? lockLabel(t.unlock!) : t.tagline}
                       className="press group relative overflow-hidden border p-3 text-left transition-colors"
                       style={{ background: t.swatch[0], borderColor: on ? t.swatch[2] : "var(--line)", borderRadius: "calc(var(--radius) + 4px)" }}
                     >
@@ -98,6 +110,7 @@ export function SettingsClient() {
                           {t.name}
                         </span>
                         {on && <Check size={13} style={{ color: t.swatch[2] }} />}
+                        {locked && <Lock size={12} style={{ color: t.swatch[1], opacity: 0.6 }} />}
                       </div>
                       <div className="mt-3 font-mono text-[0.7rem]" style={{ color: t.swatch[1], opacity: 0.55 }}>
                         the quick <span style={{ color: t.swatch[2], opacity: 1 }}>▍</span>brown
@@ -131,7 +144,12 @@ export function SettingsClient() {
               <Slider label="Line height" value={s.lineHeight} min={1.4} max={2.6} step={0.1} onChange={(v) => set({ lineHeight: v })} format={(v) => v.toFixed(1)} />
             </SettingRow>
             <SettingRow title="caret style">
-              <Segmented id="caret" label="Caret style" size="sm" value={s.caretStyle} onChange={(v: CaretStyle) => set({ caretStyle: v })} options={(["line", "block", "underscore", "glow", "pulse"] as CaretStyle[]).map((c) => ({ id: c, label: c }))} />
+              <div className="flex flex-wrap items-center gap-2">
+                <Segmented id="caret" label="Caret style" size="sm" value={s.caretStyle} onChange={(v: CaretStyle) => set({ caretStyle: v })} options={(["line", "block", "underscore", "glow", "pulse"] as CaretStyle[]).map((c) => ({ id: c, label: c }))} />
+                <LockableButton on={s.caretStyle === "comet"} locked={!prog.can("comet")} hint={lockLabel("comet")} onClick={() => set({ caretStyle: "comet" })}>
+                  comet
+                </LockableButton>
+              </div>
             </SettingRow>
             <SettingRow title="smooth caret" description="Glide between letters instead of jumping.">
               <Switch checked={s.smoothCaret} onChange={(v) => set({ smoothCaret: v })} label="Smooth caret" />
@@ -163,6 +181,9 @@ export function SettingsClient() {
             <SettingRow title="on-screen keyboard" description="A quiet keyboard under the text that reacts to your keys.">
               <Switch checked={s.showKeyboard} onChange={(v) => set({ showKeyboard: v })} label="Show on-screen keyboard" />
             </SettingRow>
+            <SettingRow title="neon keyboard" description={prog.can("neon") ? "The on-screen keyboard glows in your accent color." : `Cosmetic unlock: ${lockLabel("neon")}.`}>
+              <Switch checked={s.neonKeyboard && prog.can("neon")} onChange={(v) => prog.can("neon") && set({ neonKeyboard: v })} label="Neon keyboard" />
+            </SettingRow>
             <SettingRow title="keyboard layout" description="Used by the heatmap and on-screen keyboard.">
               <Segmented id="layout" label="Keyboard layout" size="sm" value={s.keyboardLayout} onChange={(v: KeyboardLayout) => set({ keyboardLayout: v })} options={(["qwerty", "dvorak", "colemak"] as KeyboardLayout[]).map((l) => ({ id: l, label: l }))} />
             </SettingRow>
@@ -181,6 +202,9 @@ export function SettingsClient() {
             <SettingRow title="language">
               <Select label="Language" value={s.test.language} onChange={(v) => s.setTest({ language: v })} options={Object.values(LANGUAGES).map((l) => ({ id: l.id, label: l.name }))} />
             </SettingRow>
+            <SettingRow title="levels & xp" description="Optional. XP comes from time spent typing accurately and unlocks a few cosmetics. Turn it off and everything is simply unlocked.">
+              <Switch checked={s.progression} onChange={(v) => set({ progression: v })} label="Levels and XP" />
+            </SettingRow>
             <SettingRow title="weekly goal" description="A gentle target shown on the home page. 0 turns it off.">
               <Slider label="Weekly WPM goal" value={s.weeklyGoalWpm} min={0} max={200} step={5} onChange={(v) => set({ weeklyGoalWpm: v })} format={(v) => (v ? `${v} wpm` : "off")} />
             </SettingRow>
@@ -189,9 +213,11 @@ export function SettingsClient() {
           <Section id="sound" title="sound">
             <SettingRow title="sound pack" description="Synthesized in your browser. Click one to hear it.">
               <div className="flex max-w-md flex-wrap gap-1.5">
-                {(["off", "mechanical", "typewriter", "soft", "retro", "digital", "bubble"] as SoundPack[]).map((p) => (
+                {(["off", "mechanical", "typewriter", "soft", "retro", "digital", "bubble", "chime"] as SoundPack[]).map((p) => (
                   <button
                     key={p}
+                    disabled={p === "chime" && !prog.can("chime")}
+                    title={p === "chime" && !prog.can("chime") ? lockLabel("chime") : undefined}
                     onClick={() => {
                       primeAudio();
                       set({ soundPack: p });
@@ -201,9 +227,10 @@ export function SettingsClient() {
                       }
                     }}
                     aria-pressed={s.soundPack === p}
-                    className={`press border px-3 py-1.5 font-mono text-xs ${s.soundPack === p ? "border-accent text-fg" : "border-line text-sub hover:text-fg"}`}
+                    className={`press inline-flex items-center gap-1.5 border px-3 py-1.5 font-mono text-xs disabled:cursor-not-allowed disabled:opacity-40 ${s.soundPack === p ? "border-accent text-fg" : "border-line text-sub hover:text-fg"}`}
                     style={{ borderRadius: "var(--radius)" }}
                   >
+                    {p === "chime" && !prog.can("chime") && <Lock size={11} />}
                     {p}
                   </button>
                 ))}
@@ -351,5 +378,21 @@ function AccountSection() {
         </SettingRow>
       )}
     </Section>
+  );
+}
+
+function LockableButton({ on, locked, hint, onClick, children }: { on: boolean; locked: boolean; hint: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={locked}
+      aria-pressed={on}
+      title={locked ? hint : undefined}
+      className={`press inline-flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[0.7rem] disabled:cursor-not-allowed disabled:opacity-40 ${on ? "border-accent text-fg" : "border-line text-sub hover:text-fg"}`}
+      style={{ borderRadius: "var(--radius)" }}
+    >
+      {locked && <Lock size={11} />}
+      {children}
+    </button>
   );
 }

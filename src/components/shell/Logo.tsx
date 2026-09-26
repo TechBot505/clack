@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { useUI } from "@/stores/ui";
+import { setEgg } from "@/lib/eggs";
 
 const LETTERS = ["c", "l", "a", "c", "k"];
 
@@ -20,7 +21,10 @@ export function Logo({ size = "md" }: { size?: "md" | "lg" }) {
     if (n >= 5) {
       e.preventDefault();
       setChaos((c) => c + 1);
-      if (n === 5) useUI.getState().toast({ title: "stop poking me.", body: "i'm a logo, not a button." });
+      if (n === 5) {
+        useUI.getState().toast({ title: "stop poking me.", body: "i'm a logo, not a button." });
+        setEgg("logo");
+      }
       if (n === 9) {
         setFlipped((f) => !f);
         useUI.getState().toast({ title: "ok. you win.", body: "¡ɹǝʇʇǝq ƃuᴉdʎʇ oƃ ʍou" });
