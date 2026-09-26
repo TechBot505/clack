@@ -6,6 +6,7 @@ import type { RunInput } from "@/engine/record";
 import { pbImprovements, type PbImprovement, type TestRecord } from "@/lib/records";
 import * as local from "@/lib/local-store";
 import { api, ApiError } from "@/lib/api";
+import { useSettings } from "./settings";
 
 /**
  * Test history. Anonymous users: localStorage only. Signed-in users: the
@@ -84,7 +85,7 @@ export const useHistory = create<HistoryState>((set, get) => ({
     set({ tests });
     local.saveTests(owner, tests);
     local.saveLog(owner, saved.id, log, tests.map((t) => t.id));
-    if (source === "remote") {
+    if (source === "remote" && !useSettings.getState().privateMode) {
       try {
         const { test } = await api.saveTest(input, log);
         saved = { ...test, synced: true };

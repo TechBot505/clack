@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import { AtSign, Hash, Flame, Target, Eye, Pencil } from "lucide-react";
+import { AtSign, Hash, Flame, Target, Eye, Pencil, Ghost } from "lucide-react";
 import { useSettings } from "@/stores/settings";
 import { TIME_PRESETS, WORD_PRESETS, LIMITS } from "@/engine/config";
 import type { TestConfig, TestMode } from "@/engine/types";
@@ -78,6 +78,7 @@ const Divider = () => <span className="mx-1 h-4 w-px bg-line" aria-hidden />;
 export function TestConfigBar({ onCustomEdit }: { onCustomEdit: () => void }) {
   const test = useSettings((s) => s.test);
   const setTest = useSettings((s) => s.setTest);
+  const ghost = useSettings((s) => s.ghost);
   const [customNum, setCustomNum] = useState<string | null>(null);
 
   const set = (patch: Partial<TestConfig>) => setTest(patch);
@@ -168,6 +169,9 @@ export function TestConfigBar({ onCustomEdit }: { onCustomEdit: () => void }) {
       <Divider />
       <Toggle on={test.strict} onClick={() => set({ strict: !test.strict })} label="accuracy" icon={<Target size={13} />} title="Accuracy mode: mistakes block progress" />
       <Toggle on={test.flow} onClick={() => set({ flow: !test.flow })} label="flow" icon={<Eye size={13} />} title="Flow: hide every number until the end" />
+      {wordish && (
+        <Toggle on={ghost} onClick={() => useSettings.getState().set({ ghost: !ghost })} label="ghost" icon={<Ghost size={13} />} title="Ghost: race a replay of your personal best" />
+      )}
       {customNum !== null && (
         <form
           className="flex w-full items-center justify-center gap-2 border-t border-line px-2 pb-1 pt-2"

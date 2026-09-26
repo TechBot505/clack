@@ -8,15 +8,18 @@ import { RotateCcw, Smartphone } from "lucide-react";
 import { TypingSurface, type TypingSurfaceHandle } from "./TypingSurface";
 import { TestConfigBar } from "./TestConfigBar";
 import { LiveStats, type LiveStatsHandle } from "./LiveStats";
-import type { FinishedRun, LiveStats as Live } from "./session";
+import { ghostFromResult, type FinishedRun, type GhostTrack, type LiveStats as Live } from "./session";
 import { useSettings } from "@/stores/settings";
 import { useUI } from "@/stores/ui";
 import { useHistory } from "@/stores/history";
-import type { PbImprovement } from "@/lib/records";
+import type { PbImprovement, TestRecord } from "@/lib/records";
 import type { TestConfig } from "@/engine/types";
-import { MIN_VALID_MS } from "@/engine/config";
+import { MIN_VALID_MS, pbCategories } from "@/engine/config";
+import { computePbs } from "@/lib/records";
+import { replayInput, type RunInput } from "@/engine/record";
 import { getLocal, setLocal } from "@/lib/local-store";
 import { KeyboardOverlay } from "@/components/KeyboardOverlay";
+import { useMediaQuery } from "@/lib/hooks";
 
 const ResultsView = dynamic(() => import("@/components/results/ResultsView").then((m) => m.ResultsView), {
   ssr: false,
@@ -35,7 +38,16 @@ interface Finished {
   firstTest: boolean;
 }
 
-export function TestScreen({ override }: { override?: Override | null }) {
+export function TestScreen({
+  override,
+  lockConfig = false,
+  onRecorded,
+}: {
+  override?: Override | null;
+  /** hide the config bar (daily challenge, shared challenges) */
+  lockConfig?: boolean;
+  onRecorded?: (record: TestRecord, pbs: PbImprovement[]) => void;
+}) {
   const router = useRouter();
   const baseConfig = useSettings((s) => s.test);
   const showWpm = useSettings((s) => s.showLiveWpm);
@@ -43,6 +55,7 @@ export function TestScreen({ override }: { override?: Override | null }) {
   const showTimer = useSettings((s) => s.showTimer);
   const showProgress = useSettings((s) => s.showProgress);
   const showKeyboard = useSettings((s) => s.showKeyboard);
+  const ghostOn = useSettings((s) => s.ghost);
   const restartNonce = useUI((s) => s.restartNonce);
   const history = useHistory((s) => s.tests);
 
@@ -50,10 +63,16 @@ export function TestScreen({ override }: { override?: Override | null }) {
   const [fixed, setFixed] = useState<Override["fixed"]>(override?.fixed);
   const [activeOverride, setActiveOverride] = useState<Override | null | undefined>(override);
   const [finished, setFinished] = useState<Finished | null>(null);
-  const [touch, setTouch] = useState(false);
+  const touch = useMediaQuery("(pointer: coarse)");
   const surface = useRef<TypingSurfaceHandle>(null);
   const live = useRef<LiveStatsHandle>(null);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onRecordedRef = useRef(onRecorded);
+  useEffect(() => {
+    onRecordedRef.current = onRecorded;
+  });
+  const ghostLabel = useRef<HTMLDivElement>(null);
+  const [ghostTrack, setGhostTrack] = useState<{ id: string; track: GhostTrack } | null>(null);
 
   const config = useMemo<TestConfig>(
     () => (activeOverride ? { ...baseConfig, ...activeOverride.config } : baseConfig),
@@ -62,9 +81,35 @@ export function TestScreen({ override }: { override?: Override | null }) {
   const flow = config.flow;
   const lines = config.mode === "code" ? 5 : 3;
 
+
+  // Ghost: replay the personal best for this exact test length as a pace caret.
+  const ghostCategory = useMemo(() => {
+    if (!ghostOn || (config.mode !== "time" && config.mode !== "words")) return null;
+    const cats = pbCategories({ mode: config.mode, mode2: config.mode === "time" ? config.duration : config.wordCount, content: config.content, punctuation: config.punctuation, numbers: config.numbers });
+    return cats[0] ?? null;
+  }, [ghostOn, config]);
+  const ghostSource = useMemo(() => {
+    if (!ghostCategory) return null;
+    const pb = computePbs(history)[ghostCategory];
+    return pb ? history.find((t) => t.id === pb.testId) ?? null : null;
+  }, [ghostCategory, history]);
   useEffect(() => {
-    setTouch(window.matchMedia("(pointer: coarse)").matches);
-  }, []);
+    if (!ghostSource) return;
+    let cancelled = false;
+    (async () => {
+      const log = await useHistory.getState().getLog(ghostSource.id);
+      if (cancelled || !log) return;
+      try {
+        setGhostTrack({ id: ghostSource.id, track: ghostFromResult(replayInput(ghostSource as unknown as RunInput, log)) });
+      } catch {
+        /* unreplayable PB: no ghost */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ghostSource]);
+  const ghost = ghostSource && ghostTrack?.id === ghostSource.id ? ghostTrack.track : null;
 
   const restart = useCallback((keepText = false) => {
     setFinished(null);
@@ -96,6 +141,10 @@ export function TestScreen({ override }: { override?: Override | null }) {
 
   useEffect(() => {
     live.current?.reset(config.mode === "time" ? String(config.duration) : config.mode === "custom" && config.customTimer ? String(config.customTimer) : "");
+    if (ghostLabel.current) {
+      ghostLabel.current.textContent = "your ghost is ready. beat it.";
+      delete ghostLabel.current.dataset.tone;
+    }
   }, [config, nonce]);
 
   // keys that work while results are showing
@@ -118,7 +167,21 @@ export function TestScreen({ override }: { override?: Override | null }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [finished, restart]);
 
-  const onTick = useCallback((l: Live) => live.current?.update(l), []);
+  const onTick = useCallback((l: Live) => {
+    live.current?.update(l);
+    const el = ghostLabel.current;
+    const d = surface.current?.session()?.ghostDelta();
+    if (!el || !d) return;
+    const words = Math.round(Math.abs(d.chars) / 5);
+    if (Math.abs(d.seconds) >= 0.1 && Math.abs(d.seconds) < 60) {
+      el.textContent = `${Math.abs(d.seconds).toFixed(1)}s ${d.seconds > 0 ? "ahead of" : "behind"} your ghost`;
+    } else if (words >= 1) {
+      el.textContent = `${words} word${words === 1 ? "" : "s"} ${d.chars > 0 ? "ahead of" : "behind"} PB`;
+    } else {
+      el.textContent = "neck and neck with your ghost";
+    }
+    el.dataset.tone = d.chars >= 0 ? "ahead" : "behind";
+  }, []);
 
   const onKey = useCallback(() => {
     if (!flow) return;
@@ -145,6 +208,7 @@ export function TestScreen({ override }: { override?: Override | null }) {
         record = saved.record;
       }
       setFinished({ run: { ...run, record }, pbs, firstTest });
+      onRecordedRef.current?.(record, pbs);
     },
     [restart],
   );
@@ -163,25 +227,36 @@ export function TestScreen({ override }: { override?: Override | null }) {
             exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
           >
             <div className="chrome pt-2">
-              <TestConfigBar onCustomEdit={() => router.push("/practice#custom")} />
+              {!lockConfig && <TestConfigBar onCustomEdit={() => router.push("/practice#custom")} />}
               {activeOverride?.label && (
                 <div className="mt-3 text-center font-mono text-xs text-accent">
-                  {activeOverride.label} ·{" "}
-                  <button className="underline decoration-dotted underline-offset-4 hover:text-fg" onClick={() => { setActiveOverride(null); setFixed(undefined); restart(); }}>
-                    leave
-                  </button>
+                  {activeOverride.label}
+                  {!lockConfig && (
+                    <>
+                      {" · "}
+                      <button className="underline decoration-dotted underline-offset-4 hover:text-fg" onClick={() => { setActiveOverride(null); setFixed(undefined); restart(); }}>
+                        leave
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
 
             <div className="flex flex-1 flex-col justify-center py-10 sm:py-16">
               {!flow && <LiveStats ref={live} showWpm={showWpm} showAcc={showAcc} showTimer={showTimer} showProgress={showProgress} />}
+              {ghost && !flow && (
+                <div ref={ghostLabel} className="mb-2 h-4 font-mono text-[0.7rem] text-faint transition-colors data-[tone=ahead]:text-accent2 data-[tone=behind]:text-sub" aria-live="off">
+                  your ghost is ready. beat it.
+                </div>
+              )}
               <TypingSurface
                 ref={surface}
                 config={config}
                 nonce={nonce}
                 fixed={fixed}
                 lines={lines}
+                ghost={ghost}
                 onTick={onTick}
                 onFinish={onFinish}
                 onRestart={onRestart}

@@ -570,6 +570,7 @@ kbd,
   border-radius: 2px;
   pointer-events: none;
 }
+[data-trail="false"] .caret::after,
 .caret[data-style="underscore"]::after,
 .caret[data-style="block"]::after {
   display: none;

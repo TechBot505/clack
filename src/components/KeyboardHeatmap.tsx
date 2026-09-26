@@ -37,15 +37,28 @@ export function KeyboardHeatmap({
   const [pinned, setPinned] = useState<string | null>(null);
   const metrics = useMemo(() => keyMetrics(stats), [stats]);
 
+  // Ignore keys with too few presses (relative to how much data there is), and
+  // scale between the 10th and 90th percentile so one odd key can't wash out the rest.
+  const threshold = useMemo(() => {
+    const counts = Object.values(metrics).map((m) => m.hits + m.misses).sort((a, b) => a - b);
+    const med = counts.length ? counts[Math.floor(counts.length / 2)] : 0;
+    return Math.max(minSamples, Math.floor(med * 0.15));
+  }, [metrics, minSamples]);
+
   const scale = useMemo(() => {
-    const vals = Object.values(metrics).filter((m) => m.hits + m.misses >= minSamples);
+    const vals = Object.values(metrics).filter((m) => m.hits + m.misses >= threshold);
     const pick = (m: KeyMetric) => (metric === "speed" ? m.wpm : metric === "accuracy" ? m.accuracy : m.misses);
-    const nums = vals.map(pick).filter((n) => Number.isFinite(n) && (metric !== "speed" || n > 0));
-    return { min: Math.min(...nums, Infinity), max: Math.max(...nums, -Infinity), pick };
-  }, [metrics, metric, minSamples]);
+    const nums = vals
+      .map(pick)
+      .filter((n) => Number.isFinite(n) && (metric !== "speed" || n > 0))
+      .sort((a, b) => a - b);
+    const q = (p: number) => (nums.length ? nums[Math.min(nums.length - 1, Math.max(0, Math.round((nums.length - 1) * p)))] : NaN);
+    const robust = nums.length >= 8;
+    return { min: robust ? q(0.1) : q(0), max: robust ? q(0.9) : q(1), pick };
+  }, [metrics, metric, threshold]);
 
   const intensity = (m: KeyMetric | undefined): number | null => {
-    if (!m || m.hits + m.misses < minSamples) return null;
+    if (!m || m.hits + m.misses < threshold) return null;
     const v = scale.pick(m);
     if (!Number.isFinite(scale.min) || scale.max === scale.min) return 0.6;
     return Math.max(0, Math.min(1, (v - scale.min) / (scale.max - scale.min)));
@@ -84,7 +97,7 @@ export function KeyboardHeatmap({
 
   // scale to the container: the widest row is ~18 key-units
   const unit = compact ? "min(2.5rem, calc(100cqw / 18.2))" : "min(3.2rem, calc(100cqw / 18.2))";
-  const hasData = Object.values(metrics).some((m) => m.hits + m.misses >= minSamples);
+  const hasData = Object.values(metrics).some((m) => m.hits + m.misses >= threshold);
 
   return (
     <div className="w-full">

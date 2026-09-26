@@ -1,4 +1,5 @@
 import type { Word } from "@/engine/types";
+import type { InputEffect, TypingEngine } from "@/engine/engine";
 
 /**
  * Imperative DOM renderer for the typing surface.
@@ -250,4 +251,29 @@ export class TypingRenderer {
     this.ghostEl?.remove();
     this.ghostEl = null;
   }
+}
+
+/**
+ * Reflect one engine effect in the DOM (shared by live tests and replays).
+ * Returns the caret's line index.
+ */
+export function applyEffect(e: TypingEngine, r: TypingRenderer, eff: InputEffect): number {
+  if (eff.blocked) r.flash(e.wordIndex);
+  if (eff.kind === "char" || (eff.kind === "back" && eff.word === eff.prevWord)) {
+    r.syncWord(eff.word, e.words[eff.word], e.typed[eff.word], false);
+  } else if (eff.kind === "sep" && !eff.blocked) {
+    r.syncWord(eff.prevWord, e.words[eff.prevWord], e.typed[eff.prevWord], true);
+    if (e.options.zen && !eff.finished) {
+      r.addZenWord(eff.word, e.words[eff.prevWord].sep === "\n");
+    } else if (eff.appended > 0) {
+      r.append(e.words, e.typed, e.words.length - eff.appended);
+    }
+  } else if (eff.kind === "back") {
+    if (e.options.zen) r.removeWord(eff.prevWord);
+    else r.syncWord(eff.prevWord, e.words[eff.prevWord], e.typed[eff.prevWord], false);
+    r.syncWord(eff.word, e.words[eff.word], e.typed[eff.word], false);
+  }
+  const wi = Math.min(e.wordIndex, e.words.length - 1);
+  r.setActive(wi);
+  return r.placeCaret(wi, e.wordIndex >= e.words.length ? e.typed[wi].length : e.currentTyped.length);
 }

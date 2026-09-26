@@ -52,12 +52,7 @@ interface Cmd {
 
 export function CommandPalette() {
   const open = useUI((s) => s.paletteOpen);
-  const close = useUI((s) => s.closePalette);
   const toggle = useUI((s) => s.togglePalette);
-  const router = useRouter();
-  const auth = useClientAuth();
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState<"root" | "themes">("root");
 
   // Cmd/Ctrl+K anywhere
   useEffect(() => {
@@ -71,12 +66,16 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
-  useEffect(() => {
-    if (!open) {
-      setSearch("");
-      setPage("root");
-    }
-  }, [open]);
+  // The body mounts fresh on every open, so search and sub-page reset naturally.
+  return <AnimatePresence>{open && <PaletteBody key="palette" />}</AnimatePresence>;
+}
+
+function PaletteBody() {
+  const close = useUI((s) => s.closePalette);
+  const router = useRouter();
+  const auth = useClientAuth();
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState<"root" | "themes">("root");
 
   const commands = useMemo<Cmd[]>(() => {
     const s = useSettings.getState;
@@ -151,8 +150,7 @@ export function CommandPalette() {
       );
     }
     return list;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, auth, open]);
+  }, [router, auth]);
 
   const secret = triggerEasterEgg.match(search);
   const groups = Array.from(new Set(commands.map((c) => c.group)));
@@ -165,8 +163,6 @@ export function CommandPalette() {
   };
 
   return (
-    <AnimatePresence>
-      {open && (
         <motion.div
           className="fixed inset-0 z-[80] flex items-start justify-center px-4 pt-[14vh]"
           initial={{ opacity: 0 }}
@@ -259,8 +255,6 @@ export function CommandPalette() {
             </Command>
           </motion.div>
         </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
 

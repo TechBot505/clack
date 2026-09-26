@@ -40,6 +40,8 @@ export interface Settings {
   colorblind: boolean;
   keyboardLayout: KeyboardLayout;
   showKeyboard: boolean;
+  /** race a translucent caret replaying your personal best */
+  ghost: boolean;
   /** anonymous-friendly: never auto-upload even when signed in */
   privateMode: boolean;
   weeklyGoalWpm: number;
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   colorblind: false,
   keyboardLayout: "qwerty",
   showKeyboard: false,
+  ghost: false,
   privateMode: false,
   weeklyGoalWpm: 0,
   unlockedThemes: [],
@@ -136,6 +139,8 @@ export function applySettingsToDocument(s: Settings, systemDark: boolean) {
   root.dataset.font = s.font;
   root.dataset.contrast = s.highContrast ? "high" : "normal";
   root.dataset.cb = String(s.colorblind);
+  root.dataset.trail = String(s.caretTrail);
+  root.dataset.fx = String(s.backgroundFx);
   const reduce =
     s.motion === "reduced" || (s.motion === "system" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   root.dataset.motion = reduce ? "reduced" : "full";

@@ -40,6 +40,13 @@ export interface ServerStatus {
   auth: boolean;
 }
 
+export interface DailyBoard {
+  date: string;
+  entries: { rank: number; name: string; wpm: number; accuracy: number; you: boolean }[];
+  total: number;
+  you: { wpm: number; accuracy: number; rank: number; percentile: number } | null;
+}
+
 export const api = {
   status: () => call<ServerStatus>("/api/status"),
   listTests: (limit = 1000) => call<{ tests: TestRecord[] }>(`/api/tests?limit=${limit}`),
@@ -52,6 +59,9 @@ export const api = {
   getSettings: () => call<{ settings: Partial<Settings> | null }>("/api/settings"),
   saveSettings: (settings: Settings) =>
     call<{ ok: true }>("/api/settings", { method: "PUT", body: JSON.stringify({ settings }) }),
+  submitDaily: (date: string, testId: string) =>
+    call<{ official: boolean }>("/api/daily", { method: "POST", body: JSON.stringify({ date, testId }) }),
+  getDaily: (date: string) => call<DailyBoard>(`/api/daily?date=${encodeURIComponent(date)}`),
   me: () => call<{ user: { id: string; username: string | null; displayName: string | null; avatarUrl: string | null; visibility: string; createdAt: string } | null }>("/api/me"),
   updateMe: (patch: { username?: string; displayName?: string; visibility?: string }) =>
     call<{ ok: true }>("/api/me", { method: "PATCH", body: JSON.stringify(patch) }),
